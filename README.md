@@ -11,7 +11,7 @@ binscatter2
 | [Acknowledgements](#acknowledgements)
 | [License](#license)
 
-Faster binscatters in Stata
+Faster binned scatterplots in Stata with a few new bells and whistles
 
 `version 0.1 08jan2019`
 
@@ -24,7 +24,7 @@ binscatter2 is a faster method for producing binned scatterplots in Stata. It yi
 Motivation
 ---------------------------------
 
-Binned scatterplots provide a convenient and non-parametric way to visualize an arbitrary conditional expectation function. They are useful for evaluating the relationship between two variables, possibly conditional on a set of covariates and/or fixed effects. Michael Stepner has provided a wonderful slide deck on the procedure involved in producing binned scatterplots on his website. 
+Binned scatterplots provide a convenient and non-parametric way to visualize an arbitrary conditional expectation function. They are useful for evaluating the relationship between two variables, possibly conditional on a set of covariates and/or fixed effects. Michael Stepner has provided a wonderful slide deck on the procedure involved in producing binned scatterplots on his website, available [here](https://michaelstepner.com/binscatter/binscatter-StataConference2014.pdf). 
 
 Anyone who has used binscatter on a large dataset appreciates the fact that it can take a while to run. There are basically three mathematical operations involved in binscatter of y on x without conditioning covariates: the independent variable must be sorted, quantiles of the independent variable must be computed (except in the case of a 'discrete' binscatter), and the means of y must be computed within each quantile of x (or distinct value of x, in the case of a discrete binscatter). Michael's code is extremely well-written and was very efficient when it was first produced, using a number of clever tricks to make computing these quantiles really quick. However, recent improvements made possible by the -ftools- and -gtools- Stata plugins, produced by Ricardo Correia and Mauricio Caceres Bravo, respectively, have allowed these steps to be done considerably more efficiently and with fewer lines of code. 
 
@@ -39,7 +39,7 @@ There are two options for installing binscatter2.
 1. The most recent version can be installed from Github with the following Stata command:
 
 ```stata
-net install regressby, from(https://raw.githubusercontent.com/mdroste/stata-binscatter2/master/)
+net install binscatter2, from(https://raw.githubusercontent.com/mdroste/stata-binscatter2/master/)
 ```
 
 2. A ZIP containing the program can be downloaded and manually placed on the user's adopath from Github.
