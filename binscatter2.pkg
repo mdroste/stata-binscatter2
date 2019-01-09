@@ -1,0 +1,8 @@
+v 0.10
+d
+d 'binscatter2': fast and flexible grouped regressions
+d
+d Distribution-Date: 20190108
+d
+f binscatter2.ado
+f binscatter2.sthlp
