@@ -38,10 +38,10 @@ New Features
 
 In addition to general performance improvements, binscatter2 adds a few new features to the functionality of binscatter. Among these:
 
-[x] Support for reghdfe. If reghdfe is installed, it is automatically used (unless specified otherwise with noreghdfe option). This offers modest further speed improvements and allows the user to directly absorb multi-way fixed effects. 
-[x] Plot distributional statistics. The user can overlay quantiles of the sample distribution or standard deviation intervals on top of the means/medians within each bin, providing more information on the shape of the conditional distribution of y given x than is provided by the mean or median alone. 
-[x] More flexible save commands. The user can save out to .dta files and also choose to omit the do-file created by savedata().
-[x] Higher-order polynomial fit lines. Arbitrary polynomial fit lines are now supported.
+- [x] Support for reghdfe. If reghdfe is installed, it is automatically used (unless specified otherwise with noreghdfe option). This offers modest further speed improvements and allows the user to directly absorb multi-way fixed effects. 
+- [x] Plot distributional statistics. The user can overlay quantiles of the sample distribution or standard deviation intervals on top of the means/medians within each bin, providing more information on the shape of the conditional distribution of y given x than is provided by the mean or median alone. 
+- [x] More flexible save commands. The user can save out to .dta files and also choose to omit the do-file created by savedata().
+- [x] Higher-order polynomial fit lines. Arbitrary polynomial fit lines are now supported.
 
 
 Installation
