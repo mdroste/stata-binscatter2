@@ -1,8 +1,9 @@
+*! binscatter2, v0.12 (4feb2019), Michael Droste, mdroste@fas.harvard.edu
 *===============================================================================
 * Program: binscatter2.ado
 * Purpose: New functionality and efficiency improvements for binscatter.
 * Author:  Michael Droste
-* Version: 0.1 (01/08/2019)
+* Version: 0.12 (02/04/2019)
 * Credits: This program was made possible due to the collective efforts of a 
 *          handful of Stata superstars, among them:
 *           - Michael Stepner, who wrote the original binscatter (with 
@@ -38,6 +39,9 @@ syntax varlist(min=2 numeric) [if] [in] [aweight fweight], ///
 	Msymbols(string) ///
 	savegraph(string) ////
 	savedata(string) ///
+	quantiles(numlist integer ascending) ///
+	nodofile ///
+	nograph ///
 	replace ///
 	nofastxtile ///
 	randvar(varname numeric) ///
@@ -52,15 +56,12 @@ set more off
 * Preserve
 * If genxq specified, then create an identifier to merge it on later
 *---------------------------------------------------------------------------
-
-tempvar temp_id
-gen `temp_id' = _n
-preserve
 	
 *---------------------------------------------------------------------------
-* Check prerequisite packages: user must have gtools installed
+* Check prerequisite packages
 *---------------------------------------------------------------------------
 
+* User MUST have gtools installed (recent enough to have fasterxtile)
 cap which fasterxtile
 local a1 = _rc
 cap which gcollapse
@@ -71,8 +72,9 @@ if `a1'!=0 | `a2'!=0 {
 	exit
 }
 
-* Create convenient weight local
-if ("`weight'"!="") local wt [`weight'`exp']
+* Optional: check to see if user has reghdfe, and set a flag if so
+cap which reghdfe
+local has_reghdfe = _rc == 0
 	
 *---------------------------------------------------------------------------
 * Check compatibility with legacy binscatter options
@@ -136,7 +138,12 @@ if "`unique'"!="" {
 
 * Can't use nofastxtile() legacy option
 if "`nofastxtile'"!="" {
-	di as text "NOTE: nofastxtile is no longer a recognized option in binscatter2 and will be ignored. binscatter2 uses gtools to compute quantiles."
+	di as text "NOTE: nofastxtile is no longer a recognized option in binscatter2 and will be ignored. binscatter2 uses gtools to compute quantiles, not fastxtile."
+}
+
+* Can't use randcut, randvar legacy options
+if "`randcut'"!="1" | "`randvar'"!="" | "`randn'"!="-1" {
+	di as text "NOTE: randcut, randvar, and randn are no longer recognized options in binscatter2 and will be ignored."
 }
 
 *-------------------------------------------------------------------------------
@@ -145,14 +152,8 @@ if "`nofastxtile'"!="" {
 
 * Set default linetype and check valid
 if ("`linetype'"=="") local linetype lfit
-else if !inlist("`linetype'","connect","lfit","qfit","none") {
-	di as error "linetype() must either be connect, lfit, qfit, or none"
-	exit
-}
-	
-* Check that nofastxtile isn't combined with fastxtile-only options
-if "`fastxtile'"=="nofastxtile" & ("`randvar'"!="" | `randcut'!=1 | `randn'!=-1) {
-	di as error "Cannot combine randvar, randcut or randn with nofastxtile"
+else if !inlist("`linetype'","connect","lfit","qfit","expfit","logfit","none") {
+	di as error "linetype() must either be connect, lfit, qfit, logfit, expfit, or none"
 	exit
 }
 
@@ -182,14 +183,19 @@ if "`xq'"!="" {
 
 * Check to make sure nquantiles not used with discrete or xq options
 if `nquantiles'!=20 & ("`xq'"!="" | "`discrete'"!="") {
-	di as error "Cannot specify nquantiles in combination with discrete or an xq variable."
+	di as error "Error: Cannot specify nquantiles in combination with discrete or an xq variable."
 	exit
 }
 
 * Check that reportreg is not used with linetype(none) option
-if "`reportreg'"!="" & !inlist("`linetype'","lfit","qfit") {
-	di as error "Cannot specify 'reportreg' when no fit line is being created."
+if "`reportreg'"!="" & !inlist("`linetype'","lfit","qfit","logfit","expfit") {
+	di as error "Error: Cannot specify 'reportreg' when no fit line is being created."
 	exit
+}
+
+* Display a warning if nodofile used without savedata
+if "`nodofile'"!="" & "`savedata'"=="" {
+	di as text "Warning: The nodofile option was specified, but savedata was not. This is harmless, but a weird choice!"
 }
 
 * If replace is not specified and savegraph/savedata are, make sure files don't exist
@@ -200,13 +206,49 @@ if "`replace'"=="" {
 	}
 	if `"`savedata'"'!="" {
 		confirm new file `"`savedata'.csv"'
-		confirm new file `"`savedata'.do"'
+		if "`nodofile'"=="" confirm new file `"`savedata'.do"'
+	}
+}
+
+* No display: Make sure that nograph only used if savedata is specified
+if "`nograph'"!="" & "`savedata'"!="" {
+	di as error "Error: Cannot use nograph option without the savedata option."
+	exit 
+}
+
+* Make sure quantiles are between 0 and 100, and there arent more than 2
+local num_quantiles = 0
+foreach v in `quantiles' {
+	if ~inrange(`v',0,100) {
+		di as error "Error: quantiles must be between 0 and 100 (`v' is not)"
+		exit
+	}
+	local num_quantiles = `num_quantiles' + 1
+}
+if `num_quantiles'>2 {
+	di as error "Error: Maximum of two quantiles allowed"
+	exit
+}
+
+* Quantiles can't be specified with by or multiple dependent vars currently,
+* Why? Too many lines floating around
+if "`quantiles'"!="" {
+	if wordcount("`varlist'")>2 {
+		di as error "Error: Can't use quantiles() option with more than one dependent variable."
+		exit
+	}
+	if "`by'"!="" {
+		di as error "Error: Can't use quantiles() option with by groups."
+		exit
 	}
 }
 
 *-------------------------------------------------------------------------------
 * Option parsing
 *-------------------------------------------------------------------------------
+
+* Create convenient weight local
+if ("`weight'"!="") local wt [`weight'`exp']
 
 * Mark sample (reflects the if/in conditions, and includes only nonmissing observations)
 marksample touse
@@ -215,6 +257,9 @@ qui count if `touse'
 local samplesize  = r(N)
 local touse_first = _N - `samplesize' + 1
 local touse_last  = _N
+
+* Try to speed things up
+keep if `touse'
 
 * Parse varlist into y-vars and x-var
 local x_var  = word("`varlist'",-1)
@@ -239,9 +284,16 @@ if "`by'"!="" {
 		local byvals `byvals' `=`byvalmatrix'[`i',1]'
 	}
 }
-else local bynum=1
-	
-* xx restrict sample
+else local bynum = 1
+
+* Create a temporary ID for later merges
+if "`genxq'"!="" {
+	tempvar temp_id
+	gen `temp_id' = _n
+}
+
+* Preserve dataset before we drop and collapse stuff
+preserve
 
 *-------------------------------------------------------------------------------
 * Residualize variables, if controls() or absorb() specified
@@ -250,7 +302,7 @@ else local bynum=1
 *   should residualize on joint nonmissing obs, right?
 *-------------------------------------------------------------------------------
 
-* Controls specified
+* If controls() or absorb() are specified...
 if (`"`controls'`absorb'"'!="") quietly {
 	
 	* Parse absorb
@@ -260,7 +312,7 @@ if (`"`controls'`absorb'"'!="") quietly {
 	
 	* Residualize x variable
 	tempvar residvar
-	_regress `x_var' `controls' `wt' if `touse', `absorb' noheader notable
+	_regress `x_var' `controls' `wt', `absorb' noheader notable
 	predict `residvar' if e(sample), residuals
 	if "`addmean'"!="noaddmean" {
 		summarize `x_var' `wt' if `touse', meanonly
@@ -271,7 +323,7 @@ if (`"`controls'`absorb'"'!="") quietly {
 	* Residualize y variables
 	foreach yvar of varlist `y_vars' {
 		tempvar residvar
-		reg `yvar' `controls' `wt' if `touse', `absorb' noheader notable
+		_regress `yvar' `controls' `wt', `absorb' noheader notable
 		predict `residvar' if e(sample), residuals
 		if "`addmean'"!="noaddmean" {
 			summarize `yvar' `wt' if `touse', meanonly
@@ -292,13 +344,36 @@ local y_vars_r `y_vars'
 
 if ("`reportreg'"=="") local reg_verbosity "quietly"
 
-if inlist("`linetype'","lfit","qfit") `reg_verbosity' {
+if inlist("`linetype'","lfit","qfit","logfit","expfit") `reg_verbosity' {
 
 	* If doing a quadratic fit, generate a quadratic term in x
 	if "`linetype'"=="qfit" {
 		tempvar x_r2
-		gen `x_r2'=`x_r'^2
+		gen `x_r2' = `x_r'^2
 	}
+
+	* If doing a logarithmic fit, generate a quadratic term in x
+	if "`linetype'"=="logfit" {
+		noi di "HERE"
+		tempvar x_r_log
+		gen `x_r_log' = log(`x_r')
+		noi sum `x_r_log'
+	}
+
+	* If doing an exponential fit, generate an exponential term in x
+	if "`linetype'"=="expfit" {
+		tempvar x_r_exp
+		gen `x_r_exp' = exp(`x_r')
+	}
+
+	* If doing polynomial fit, generatic polynomial terms in x
+	* xx
+
+	* Generate a local holding regressors
+	local regressor_list `x_r'
+	if "`linetype'"=="qfit" local regressor_list `x_r' `x_r2'
+	if "`linetype'"=="logfit" local regressor_list `x_r_log'
+	if "`linetype'"=="expfit" local regressor_list `x_r_exp'
 		
 	* Create matrices to hold regression results
 	tempname e_b_temp
@@ -307,13 +382,13 @@ if inlist("`linetype'","lfit","qfit") `reg_verbosity' {
 	}
 		
 	* LOOP over by-vars
-	local counter_by=1
-	if ("`by'"=="") local noby="noby"
+	local counter_by = 1
+	if "`by'"=="" local noby = "noby"
 	foreach byval in `byvals' `noby' {
 		
 		* LOOP over rd intervals
-		tokenize  "`rd'"
-		local counter_rd=1	
+		tokenize "`rd'"
+		local counter_rd = 1	
 				
 		while ("`1'"!="" | `counter_rd'==1) {
 
@@ -353,16 +428,18 @@ if inlist("`linetype'","lfit","qfit") `reg_verbosity' {
 					di as text "{bf:y_var = `depvar_name'}"
 				}
 
-				* Perform regression
+				* Perform regressions
 				if "`reg_verbosity'"=="quietly" capture reg `depvar' `x_r2' `x_r' `wt' if `conds', noheader notable
-				else capture noisily reg `depvar' `x_r2' `x_r' `wt' if `conds'
+				else capture noisily reg `depvar' `regressor_list' `wt' if `conds'
 
 				* Store results
 				if _rc==0 matrix e_b_temp=e(b)
 				else if (_rc==2000) {
 					if ("`reg_verbosity'"=="quietly") di as error "no observations for one of the fit lines. add 'reportreg' for more info."
-					if ("`linetype'"=="lfit") matrix e_b_temp=.,.
-					else matrix e_b_temp=.,.,.
+					if ("`linetype'"=="lfit") matrix e_b_temp = J(1,2,.)
+					if ("`linetype'"=="logfit") matrix e_b_temp = J(1,2,.)
+					if ("`linetype'"=="expfit") matrix e_b_temp = J(1,2,.)
+					else matrix e_b_temp=J(1,3,.)
 				}
 				else {
 					exit _rc
@@ -431,6 +508,7 @@ else {
 }
 
 * When genxq is specified, save them out with temporary id's to be merged on at end
+* XX this is inefficient and not very elegant
 if "`genxq'"!="" {
 	* Save present data as a temporary file
 	tempfile temp_file_1
@@ -449,6 +527,21 @@ if "`genxq'"!="" {
 *             containing binned x vals in col 1 and binned y vals in col 2
 *-------------------------------------------------------------------------------
 
+* Define type of collapse
+local collapsetype mean
+if "`medians'"!="" local collapsetype median
+
+* If quantiles specified: define macro to pass into gcollapse
+if "`quantiles'"!="" {
+	local current_quantile 1
+	foreach v in `quantiles' {
+		local q`current_quantile' = `v'
+		local current_quantile = `current_quantile' + 1
+	}
+	local quantiles_opt "(p`q1') p`q1'=`y_vars_r' (p`q2') p`q2'=`y_vars_r'"
+	local quantile_vars p`q1' p`q2'
+}
+
 *---------------------------------------------------
 * Handle case with no by-groups
 *---------------------------------------------------
@@ -458,7 +551,7 @@ if "`by'"=="" {
 
 	* Collapse residualized y vars and x var within each x bin
 	qui drop if `xq'==.
-	gcollapse `y_vars_r' `x_r', by(`xq') fast
+	gcollapse (`collapsetype') `y_vars_r' `x_r' `quantiles_opt', by(`xq') fast
 
 	* Make matrix containing mean x and mean y within each bin for each y var
 	local counter_depvar=0
@@ -466,6 +559,11 @@ if "`by'"=="" {
 		local ++counter_depvar
 		tempname y`counter_depvar'_scatterpts
 		mkmat `x_r' `depvar', mat(`y`counter_depvar'_scatterpts')
+	}
+
+	* If quantiles specified, create a macro
+	if "`quantiles'"!="" {
+		local quantile_macro (rarea p`q2' p`q1' `x_r', color(gs12%40))
 	}
 
 }
@@ -560,11 +658,10 @@ if "`msymbols'"!="" {
 * Define scatter points
 *-------------------------------------------------------------------------------
 
-*** Prepare scatter plots
-* c indexes which color is to be used
-local c=0
-local counter_series=0
-local counter_by=0
+* Prepare scatter plots
+local c              = 0
+local counter_series = 0
+local counter_by     = 0
 if ("`by'"=="") local noby="noby"
 
 * For each by value
@@ -576,11 +673,17 @@ foreach byval in `byvals' `noby' {
 
 	* For each dependent variable
 	foreach depvar of varlist `y_vars' {
+
+		* Set up indices
 		local ++counter_depvar
 		local ++c
 		local row  = 1
 		local xval = `y`counter_depvar'_scatterpts'[`row',`xind']
 		local yval = `y`counter_depvar'_scatterpts'[`row',`yind']
+
+		* If quantiles defined
+		local quantile_lower = `y`counter_depvar'_scatterpts'[`row',3]
+		local quantile_upper = `y`counter_depvar'_scatterpts'[`row',4]
 
 		if !missing(`xval',`yval') {
 			local ++counter_series
@@ -624,7 +727,7 @@ foreach byval in `byvals' `noby' {
 * Prepare fit lines
 *-------------------------------------------------------------------------------
 
-if inlist(`"`linetype'"',"lfit","qfit") {
+if inlist(`"`linetype'"',"lfit","qfit","logfit","expfit") {
 	
 	* c indexes which color is to be used
 	local c = 0
@@ -633,7 +736,7 @@ if inlist(`"`linetype'"',"lfit","qfit") {
 	if ("`rd'"=="") matrix `fitline_bounds' = .,.
 	else matrix `fitline_bounds' = .,`=subinstr("`rd'"," ",",",.)',.
 
-	* LOOP over by-vars
+	* For each by-variable...
 	local counter_by = 0
 	if ("`by'"=="") local noby="noby"
 	foreach byval in `byvals' `noby' {
@@ -645,7 +748,7 @@ if inlist(`"`linetype'"',"lfit","qfit") {
 		* Set the row to start seeking from. note: each time we seek a coeff, it should be from row (rd_num)(counter_by-1)+counter_rd
 		local row0 = ( `rdnum' ) * (`counter_by' - 1)
 
-		* LOOP over y-vars
+		* For each dependent variable...
 		local counter_depvar=0
 		foreach depvar of varlist `y_vars_r' {
 			local ++counter_depvar
@@ -656,7 +759,7 @@ if inlist(`"`linetype'"',"lfit","qfit") {
 			local fitline_ub_rindex = `nquantiles'
 			local fitline_ub=.
 
-			* Hot fix for discrete binscatter
+			* Adjustment for discrete binscatters
 			if "`discrete'"!="" local fitline_ub_rindex = rowsof(`y`counter_depvar'_scatterpts')
 			while `fitline_ub'==. {
 				local fitline_ub = `y`counter_depvar'_scatterpts'[`fitline_ub_rindex',`xind']
@@ -666,21 +769,37 @@ if inlist(`"`linetype'"',"lfit","qfit") {
 
 			* LOOP over rd intervals
 			forvalues counter_rd=1/`rdnum' {
-				if (`"`linetype'"'=="lfit") {
-					local coef_quad = 0
+
+				* If fit type is linear, exponential, or logarithmic
+				if inlist("`linetype'","lfit","logfit","expfit") {
 					local coef_lin  = `y`counter_depvar'_coefs'[`row0'+`counter_rd',1]
+					local coef_quad = 0
 					local coef_cons = `y`counter_depvar'_coefs'[`row0'+`counter_rd',2]
 				}
-				else if (`"`linetype'"'=="qfit") {
-					local coef_quad = `y`counter_depvar'_coefs'[`row0'+`counter_rd',1]
-					local coef_lin  = `y`counter_depvar'_coefs'[`row0'+`counter_rd',2]
+
+				* If fit type is quadratic
+				else if "`linetype'"=="qfit" {
+					local coef_lin  = `y`counter_depvar'_coefs'[`row0'+`counter_rd',1]
+					local coef_quad = `y`counter_depvar'_coefs'[`row0'+`counter_rd',2]
 					local coef_cons = `y`counter_depvar'_coefs'[`row0'+`counter_rd',3]
 				}
+
+				* Prepare local containing fit function
 				if !missing(`coef_quad',`coef_lin',`coef_cons') {
 					local leftbound  = `fitline_bounds'[1,`counter_rd']
 					local rightbound = `fitline_bounds'[1,`counter_rd'+1]
-				
-					local fits `fits' (function `coef_quad'*x^2+`coef_lin'*x+`coef_cons', range(`leftbound' `rightbound') lcolor(`: word `c' of `lcolors''))
+					if "`linetype'"=="lfit" {
+						local fits `fits' (function `coef_lin'*x+`coef_cons', range(`leftbound' `rightbound') lcolor(`: word `c' of `lcolors''))
+					}
+					if "`linetype'"=="logfit" {
+						local fits `fits' (function `coef_lin'*log(x)+`coef_cons', range(`leftbound' `rightbound') lcolor(`: word `c' of `lcolors''))
+					}
+					if "`linetype'"=="expfit" {
+						local fits `fits' (function `coef_lin'*exp(x)+`coef_cons', range(`leftbound' `rightbound') lcolor(`: word `c' of `lcolors''))
+					}
+					if "`linetype'"=="qfit" {
+						local fits `fits' (function `coef_quad'*x^2+`coef_lin'*x+`coef_cons', range(`leftbound' `rightbound') lcolor(`: word `c' of `lcolors''))
+					}
 				}
 			}
 		}
@@ -690,22 +809,27 @@ if inlist(`"`linetype'"',"lfit","qfit") {
 *-------------------------------------------------------------------------------
 * Display graph
 *-------------------------------------------------------------------------------
-	
-* Prepare y-axis title
-if (`ynum'==1) local ytitle `y_vars'
-else if (`ynum'==2) local ytitle : subinstr local y_vars " " " and "
-else local ytitle : subinstr local y_vars " " "; ", all
 
-* Display graph
-local graphcmd twoway `scatters' `fits', graphregion(fcolor(white)) `xlines' xtitle(`x_var') ytitle(`ytitle') legend(`legend_labels' order(`order')) `options'
-if "`savedata'"!="" local savedata_graphcmd twoway `savedata_scatters' `fits', graphregion(fcolor(white)) `xlines' xtitle(`x_var') ytitle(`ytitle') legend(`legend_labels' order(`order')) `options'
-`graphcmd'
+* Only display graph if nograph option was not specified
+if "`nograph'"=="" {
+
+	* Prepare y-axis title
+	if (`ynum'==1) local ytitle `y_vars'
+	else if (`ynum'==2) local ytitle : subinstr local y_vars " " " and "
+	else local ytitle : subinstr local y_vars " " "; ", all
+
+	* Display graph
+	local graphcmd twoway `quantile_macro' `scatters' `fits', graphregion(fcolor(white)) `xlines' xtitle(`x_var') ytitle(`ytitle') legend(`legend_labels' order(`order')) `options'
+	if "`savedata'"!="" local savedata_graphcmd twoway `quantile_macro' `savedata_scatters' `fits', graphregion(fcolor(white)) `xlines' xtitle(`x_var') ytitle(`ytitle') legend(`legend_labels' order(`order')) `options'
+	`graphcmd'
+
+}
 
 *-------------------------------------------------------------------------------
 * Save results out
 *-------------------------------------------------------------------------------
 	
-* Save graph
+* If savegraph() specified, save the graph
 if `"`savegraph'"'!="" {
 	* check file extension using a regular expression
 	if regexm(`"`savegraph'"',"\.[a-zA-Z0-9]+$") local graphextension=regexs(0)
@@ -715,84 +839,77 @@ if `"`savegraph'"'!="" {
 
 * Save data
 if ("`savedata'"!="") {
-	
-	*** Save a CSV containing the scatter points
-	tempname savedatafile
-	file open `savedatafile' using `"`savedata'.csv"', write text `replace'
-		
-	* LOOP over rows
-	forvalues row=0/`nquantiles' {
-		forvalues counter_by=1/`bynum' {
-			if (`row'==0) { /* write variable names */
-				if "`by'"!="" local bynlabel _by`counter_by'
-				file write `savedatafile' "`x_var'`bynlabel',"
-			}
-		else { /* write data values */
-				if (`row'<=`=rowsof(`y1_scatterpts')') file write `savedatafile' (`y1_scatterpts'[`row',`counter_by'*2-1]) ","
-				else file write `savedatafile' ".,"
-			}
-		}
-		*** Now y-variables at the right
-		local counter_depvar=0
-		foreach depvar of varlist `y_vars' {
-			local ++counter_depvar
-			forvalues counter_by=1/`bynum' {
-				if (`row'==0) { /* write variable names */
-					if "`by'"!="" local bynlabel _by`counter_by'
-					file write `savedatafile' "`depvar'`bynlabel'"
-				}
-				else { /* write data values */
-					if (`row'<=`=rowsof(`y`counter_depvar'_scatterpts')') file write `savedatafile' (`y`counter_depvar'_scatterpts'[`row',`counter_by'*2])
-					else file write `savedatafile' "."
-				}
-				* unless this is the last variable in the dataset, add a comma
-				if !(`counter_depvar'==`ynum' & `counter_by'==`bynum') file write `savedatafile' ","
-			} 
-		}
-		file write `savedatafile' _n
-	} 
 
-	file close `savedatafile'
-	di as text `"(file `savedata'.csv written containing saved data)"'
-		
-	*** Save a do-file with the commands to generate a nicely labeled dataset and re-create the binscatter15 graph
-	file open `savedatafile' using `"`savedata'.do"', write text `replace'
-	file write `savedatafile' `"insheet using `savedata'.csv"' _n _n
-	if "`by'"!="" {
-		foreach var of varlist `x_var' `y_vars' {
-			local counter_by=0
-			foreach byval in `byvals' {
-				local ++counter_by
-				if ("`bylabel'"=="") local byvalname=`byval'
-			else {
-					local byvalname `: label `bylabel' `byval''
-				}
-				file write `savedatafile' `"label variable `var'_by`counter_by' "`var'; `byvarname'==`byvalname'""' _n
-			}
-		}
-		file write `savedatafile' _n
-	}
+	tempname savedatafile
 	
-	file write `savedatafile' `"`savedata_graphcmd'"' _n
-	file close `savedatafile'
-	di as text `"(file `savedata'.do written containing commands to process saved data)"'
+	* Determine file extension for savedata() using a regular expression
+	if regexm(`"`savedata'"',"\.[a-zA-Z0-9]+$") local dataextension=regexs(0)
+
+	* If no file extension detected, make it a CSV
+	if "`dataextension'"=="" {
+		local dataextension ".csv"
+		local savedata "`savedata'.csv"
+	}
+
+	* If file extension not csv or dta, make csv
+	if ~inlist("`dataextension'",".csv",".dta") {
+		di as text "Warning: unrecognized file extension (`dataextension'). Saving as a CSV instead."
+		local dataextension ".csv"
+		local savedata "`savedata'.csv"
+	}
+
+	* Save a dataset containing the scatter points
+	outsheet using "`savedata'", `replace'
+	di as text `"(file `savedata' written containing saved data)"'
+		
+	* Save a do-file with the commands to generate a nicely labeled dataset and re-create the binscatter15 graph
+	if "`nodofile'"=="" {
+		file open `savedatafile' using `"`savedata'.do"', write text `replace'
+		file write `savedatafile' `"insheet using `savedata'.csv"' _n _n
+		if "`by'"!="" {
+			foreach var of varlist `x_var' `y_vars' {
+				local counter_by=0
+				foreach byval in `byvals' {
+					local ++counter_by
+					if ("`bylabel'"=="") local byvalname=`byval'
+				else {
+						local byvalname `: label `bylabel' `byval''
+					}
+					file write `savedatafile' `"label variable `var'_by`counter_by' "`var'; `byvarname'==`byvalname'""' _n
+				}
+			}
+			file write `savedatafile' _n
+		}
+		file write `savedatafile' `"`savedata_graphcmd'"' _n
+		file close `savedatafile'
+		di as text `"(file `savedata'.do written containing commands to process saved data)"'
+	}
 }
 
 *-------------------------------------------------------------------------------
 * Return items
 *-------------------------------------------------------------------------------
 
-/*
+* Restore dataset
+restore
+
+* Return sample
 ereturn post, esample(`touse')
+
+* Return sample size
 ereturn scalar N = `samplesize'
+
+* Return the graph command
 ereturn local graphcmd `"`graphcmd'"'
-if inlist("`linetype'","lfit","qfit") {
+
+* If linetype specified: return matrix of regression coefficients
+if inlist("`linetype'","lfit","qfit","expfit","logfit") {
 	forvalues yi=`ynum'(-1)1 {
 		ereturn matrix y`yi'_coefs=`y`yi'_coefs'
 	}
 }
-*/
-	
+
+* If RD option specified: return RD intervals
 if ("`rd'"!="") {
 	tempname rdintervals
 	matrix `rdintervals' = (. \ `=subinstr("`rd'"," ","\",.)' ) , ( `=subinstr("`rd'"," ","\",.)' \ .)
@@ -801,24 +918,20 @@ if ("`rd'"!="") {
 	}
 	matrix rownames `rdintervals' = `rdintervals_labels'
 	matrix colnames `rdintervals' = gt lt_eq
-	ereturn matrix rdintervals=`rdintervals'
+	ereturn matrix rdintervals = `rdintervals'
 }
 
-* If a numeric by-variable is specified
+* If a numeric by-variable is specified: return matrix of by-values
 if ("`by'"!="" & "`by'"=="`byvarname'") {
 	forvalues i=1/`=rowsof(`byvalmatrix')' {
 		local byvalmatrix_labels `byvalmatrix_labels' by`i'
 	}
 	matrix rownames `byvalmatrix' = `byvalmatrix_labels'
 	matrix colnames `byvalmatrix' = `by'
-	ereturn matrix byvalues=`byvalmatrix'
+	ereturn matrix byvalues = `byvalmatrix'
 }
 
-*-----------------------------------------------------------------------------
-* Restore dataset and merge on genxq, if applicable
-*-----------------------------------------------------------------------------
-
-restore
+* Lastly: merge back on genxq(identifier), if applicable
 if "`genxq'"!="" {
 	qui merge 1:1 `temp_id' using `temp_file_2', nogen
 }

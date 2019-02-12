@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.11 17jan2019}{...}
+{* *! version 0.12 4feb2019}{...}
 {viewerjumpto "Syntax" "binscatter2##syntax"}{...}
 {viewerjumpto "Description" "binscatter2##description"}{...}
 {viewerjumpto "Options" "binscatter2##options"}{...}
@@ -50,13 +50,15 @@ where {varlist} is {it:y_1} [{it:y_2} [...]] {it:x}
 {synopt :{opt reportreg}}display the regressions used to estimate the fit lines{p_end}
 
 {syntab :Distributional Statistics}
+{synopt :{opt quantiles(numlist)}}Display up to two quantiles of the distribution of y in each bin{p_end}
+{synopt :{opt stdevs(#)}}Plot a band of # standard deviations above and below the mean/median in each bin{p_end}
 
-
-{syntab :Graph Style}
+{syntab :Graph Style
 {synopt :{cmdab:col:ors(}{it:{help colorstyle}list}{cmd:)}}ordered list of colors{p_end}
 {synopt :{cmdab:mc:olors(}{it:{help colorstyle}list}{cmd:)}}overriding ordered list of colors for the markers{p_end}
 {synopt :{cmdab:lc:olors(}{it:{help colorstyle}list}{cmd:)}}overriding ordered list of colors for the lines{p_end}
 {synopt :{cmdab:m:symbols(}{it:{help symbolstyle}list}{cmd:)}}ordered list of symbols{p_end}
+{synopt :{opt nograph}}do not display the graph{p_end}
 {synopt :{it:{help twoway_options}}}{help title options:titles}, {help legend option:legends}, {help axis options:axes}, added {help added line options:lines} and {help added text options:text},
 	{help region options:regions}, {help name option:name}, {help aspect option:aspect ratio}, etc.{p_end}
 
@@ -201,6 +203,8 @@ Specifically, a bin may contain a discontinuity within its range, and therefore 
 {phang}{cmdab:mc:olors(}{it:{help colorstyle}list}{cmd:)} specifies an ordered list of colors for the markers of each series, which overrides any list provided in {opt colors()}
 
 {phang}{cmdab:lc:olors(}{it:{help colorstyle}list}{cmd:)} specifies an ordered list of colors for the line of each series, which overrides any list provided in {opt colors()}
+
+{phang}{cmdab:nograph} specifies that the graph is not drawn if the savedata() option is used.
 
 {phang}{cmdab:m:symbols(}{it:{help symbolstyle}list}{cmd:)} specifies an ordered list of symbols for each series
 
