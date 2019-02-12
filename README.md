@@ -94,7 +94,9 @@ The following items will be addressed soon:
 Acknowledgements
 ---------------------------------
 
-As the name suggests, this program builds extensively on the indispenseable binscatter package, developed by the illustrious [Michael Stepner](https://github.com/michaelstepner) and Jessica Laird. In addition, binscatter2 would not have been possible without gtools by Mauricio Caceres Bravo, which in turn would not have happened without ftools, developed by Sergio Correa.
+As the name suggests, this program builds extensively on the indispenseable binscatter package, developed by the illustrious [Michael Stepner](https://github.com/michaelstepner) and Jessica Laird. 
+
+In addition, binscatter2 would certainly not have been possible without [gtools](https://github.com/mcaceresb/stata-gtools) by Mauricio Caceres Bravo, which in turn would not have happened without ftools, developed by Sergio Correa.
 
 
 License
