@@ -28,7 +28,7 @@ syntax varlist(min=2 numeric) [if] [in] [aweight fweight], ///
 	xq(varname numeric) ///
 	MEDians ///
 	CONTROLs(varlist numeric ts fv) ///
-	absorb(varname) ///
+	Absorb(varname) ///
 	noAddmean ///
 	LINEtype(string) ///
 	rd(numlist ascending) ///
