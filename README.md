@@ -19,7 +19,7 @@ Faster binned scatterplots in Stata with a few new bells and whistles
 Overview
 ---------------------------------
 
-binscatter2 is a faster method for producing binned scatterplots in Stata. It yields the same functionality as Michael Stepner's excellent -binscatter- package (originally developed with Jessica Laird), but scales much better for big datasets, like those that are now commonly used in applied economics research, typically running several times faster for datasets over one million observations. In addition, binscatter2 offers a handful of new features: the ability to overlay additional information about the conditional probability distribution (e.g. quantile intervals) and expanded options for fit lines/saving.
+binscatter2 is a faster method for producing binned scatterplots in Stata. It yields the same functionality as Michael Stepner's excellent [binscatter](https://github.com/michaelstepner/binscatter) package, but runs substantially faster for big datasets (see benchmarks). In addition, binscatter2 offers a handful of new features: the ability to overlay additional information about the conditional probability distribution (e.g. quantile intervals) and expanded options for fit lines/saving.
 
 Motivation
 ---------------------------------
