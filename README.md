@@ -43,6 +43,9 @@ In addition to general performance improvements, binscatter2 adds a few new feat
 - [x] **Expanded fit line options**. Exponential and logarithmic fits now supported, with higher-order polynomials coming soon.
 
 
+![binscatter2 demo](benchmarks/ex.png "binscatter2 demo")
+
+
 Installation
 ---------------------------------
 
