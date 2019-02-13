@@ -37,7 +37,7 @@ New Features
 
 In addition to general performance improvements, binscatter2 adds a few new features to binscatter. In particular:
 
-- [x] **Support for reghdfe**. If reghdfe is installed, it is automatically used (unless specified otherwise with noreghdfe option). This offers modest further speed improvements and allows the user to directly absorb multi-way fixed effects. 
+- [x] **Support for reghdfe**. If [reghdfe](https://github.com/sergiocorreia/reghdfe) is installed, it is automatically used (unless specified otherwise with noreghdfe option). This offers modest further speed improvements and allows the user to directly absorb multi-way fixed effects. 
 - [x] **New distributional statistics**. The user can overlay quantiles of the sample distribution on top of the means/medians within each bin, providing more information on the shape of the conditional distribution of y given x.
 - [x] **Flexible save commands**. The user can save scatter points out to .dta files (extension automatically detected by input of savedata() option) and also choose to omit the do-file created by savedata() with the nodofile option.
 - [x] **Expanded fit line options**. Exponential and logarithmic fits now supported, with higher-order polynomials coming soon.
@@ -99,7 +99,7 @@ Acknowledgements
 
 As the name suggests, this program builds extensively on the indispenseable binscatter package, developed by the illustrious [Michael Stepner](https://github.com/michaelstepner) and Jessica Laird. 
 
-In addition, binscatter2 would certainly not have been possible without [gtools](https://github.com/mcaceresb/stata-gtools) by Mauricio Caceres Bravo, which in turn would not have happened without ftools, developed by Sergio Correa.
+In addition, binscatter2 would certainly not have been possible without [gtools](https://github.com/mcaceresb/stata-gtools) by Mauricio Caceres Bravo, which in turn would not have happened without [ftools](https://github.com/sergiocorreia/ftools), developed by Sergio Correa.
 
 
 License
