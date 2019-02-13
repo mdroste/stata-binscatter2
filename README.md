@@ -78,7 +78,8 @@ This repository includes a do-file, check.do, that provides a number of checks t
 Benchmarks
 ---------------------------------
 
-Coming soon
+![binscatter2 benchmark](benchmarks/benchmarks.png "binscatter2 benchmark")
+
 
   
 Todo
