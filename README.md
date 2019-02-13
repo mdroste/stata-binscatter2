@@ -19,14 +19,14 @@ Faster binned scatterplots in Stata with a few new bells and whistles
 Overview
 ---------------------------------
 
-binscatter2 is a faster method for producing binned scatterplots in Stata. It yields the same functionality as Michael Stepner's excellent [binscatter](https://github.com/michaelstepner/binscatter) package, but runs substantially faster for big datasets (see benchmarks). In addition, binscatter2 offers a handful of new features: the ability to overlay additional information about the conditional probability distribution (e.g. quantile intervals) and expanded options for fit lines/saving.
+binscatter2 is a faster method for producing binned scatterplots in Stata. It nests the functionality of the excellent [binscatter](https://github.com/michaelstepner/binscatter) package, but runs substantially faster for big datasets (see [benchmarks](#benchmarks)). In addition, binscatter2 offers a handful of new features: the ability to overlay additional information about the conditional probability distribution (e.g. quantile intervals) and expanded options for fit lines. saving, and multi-way fixed effects.
 
 Motivation
 ---------------------------------
 
 Binned scatterplots are a convenient, non-parametric method to visualize an arbitrary conditional expectation function. They are useful for examining the relationship between variables, possibly conditional on a set of covariates and/or fixed effects. Michael Stepner has provided a wonderful slide deck describing binned scatterplots on his website, available [here](https://michaelstepner.com/binscatter/binscatter-StataConference2014.pdf). 
 
-Anyone who has used binscatter on a large dataset can appreciate that it takes a while to run. The original binscatter program is extremely well-written and was very efficient when it was written; however, recent improvements made possible by the Stata program [gtools](https://github.com/mcaceresb/stata-gtools) have allowed several of the operations underlying binscatter to be accomplished more efficiently and with fewer lines of code. This means that binscatter2 runs much more quickly than binscatter for large datasets, as demonstrated in the benchmarks below. In my experience, working with data involving tens or hundreds of millions of observation, binscatter2 runs between two and eight times faster than binscatter.
+Anyone who has used binscatter on a large dataset can appreciate that it takes a while to run. The original binscatter program is extremely well-written and was very efficient when it was written; however, recent improvements made possible by the Stata program [gtools](https://github.com/mcaceresb/stata-gtools) have allowed several of the operations underlying binscatter to be accomplished more efficiently and with fewer lines of code. This means that binscatter2 runs much more quickly than binscatter for large datasets, as demonstrated in the [benchmarks](#benchmarks) below. In my experience, working with data involving tens or hundreds of millions of observation, binscatter2 runs between two and eight times faster than binscatter.
 
 In addition, binscatter2 contains a handful of additional new features intended to enhance the functionality of binscatter. For one, binscatter now allows quantile intervals to be overlaid on top of the graph. This allows the user to gauge variation in the conditional distribution of y given x.
 
@@ -35,7 +35,7 @@ In addition, binscatter2 contains a handful of additional new features intended 
 New Features
 ---------------------------------
 
-In addition to general performance improvements, binscatter2 adds a few new features to the functionality of binscatter. Among these:
+In addition to general performance improvements, binscatter2 adds a few new features to binscatter. In particular:
 
 - [x] **Support for reghdfe**. If reghdfe is installed, it is automatically used (unless specified otherwise with noreghdfe option). This offers modest further speed improvements and allows the user to directly absorb multi-way fixed effects. 
 - [x] **New distributional statistics**. The user can overlay quantiles of the sample distribution on top of the means/medians within each bin, providing more information on the shape of the conditional distribution of y given x.
@@ -69,7 +69,7 @@ Complete internal documentation is provided with the installation and can be acc
 help binscatter2
 ````
 
-Usage of binscatter2 is nearly identical to binscatter and should be familiar to any users of the original package.
+Basic usage of binscatter2 is nearly identical to binscatter and should be familiar to any users of the original package.
 
 This repository includes a do-file, check.do, that provides a number of checks to verify the functionality of each option within binscatter2 and demonstrates equivalence to binscatter for options shared by both programs. The file check_speed.do runs Monte Carlo simulations that were used in the benchmark section of this readme.
 
