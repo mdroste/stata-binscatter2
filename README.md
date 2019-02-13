@@ -87,7 +87,7 @@ Todo
 The following items will be addressed soon:
 
 - [ ] Finish benchmarking section of this readme
-- [ ] Include a couple pictures o
+- [ ] Include a few usage pictures
 - [ ] Allow for higher-order polynomial fit lines
 - [ ] Save out quantile intervals when using savedata() option
 - [ ] More aesthetic options on quantiles() option
