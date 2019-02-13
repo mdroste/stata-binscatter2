@@ -1,5 +1,9 @@
 *===============================================================================
-* Test file: binscatter vs binscatter2
+* FILE:    check_functionality.do
+* PURPOSE: Verifies options work for binscatter2 and demonstrates equivalence
+*          with binscatter
+* AUTHOR:  Michael Droste (mdroste@fas.harvard.edu)
+* UPDATED: 2019/02/13
 *===============================================================================
 
 * Change directory to github folder

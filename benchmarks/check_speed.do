@@ -1,19 +1,19 @@
-
 *===============================================================================
-* FILE: check_speed.do
-* PURPOSE: runs speed tests comparing the runtime of binscatter and binscatter2
-* AUTHOR: Michael Droste (mdroste@fas.harvard.edu)
+* FILE:    check_speed.do
+* PURPOSE: Runs speed tests comparing the runtime of binscatter and binscatter2
+* AUTHOR:  Michael Droste (mdroste@fas.harvard.edu)
 * UPDATED: 2019/02/13
 *===============================================================================
 
 clear all
+cls
 
 *-------------------------------------------------------------------------------
 * Setup options
 *-------------------------------------------------------------------------------
 
-local num_sims 4
-local num_bins 10
+local num_sims 3
+local num_bins 100
 
 local sim_1_size 1000000
 local sim_1_reps 15
@@ -22,13 +22,13 @@ local sim_2_size 10000000
 local sim_2_reps 5
 
 local sim_3_size 25000000
-local sim_3_reps 3
+local sim_3_reps 5
 
 local sim_4_size 50000000
-local sim_4_reps 1
+local sim_4_reps 5
 
 local sim_5_size 100000000
-local sim_5_reps 1
+local sim_5_reps 5
 
 *-------------------------------------------------------------------------------
 * Initialization
@@ -57,10 +57,10 @@ forval i=1/`num_sims' {
 
 local col = 0
 forval i=1/`num_sims' {
-	noi di "sim `i' (reps: `curr_reps')"
 	local curr_reps = `sim_`i'_reps'
 	local curr_size = `sim_`i'_size'
 	local col = `col' + 1
+	noi di "sim `i' (reps: `curr_reps')"
 	
 	* Run Monte Carlo simulations
 	qui forval j=1/`curr_reps' {
