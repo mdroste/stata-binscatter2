@@ -12,16 +12,16 @@ clear all
 local num_sims 4
 
 local sim_1_size 1000000
-local sim_1_reps 10
+local sim_1_reps 100
 
 local sim_2_size 10000000
-local sim_2_reps 20
+local sim_2_reps 50
 
 local sim_3_size 25000000
-local sim_3_reps 5
+local sim_3_reps 20
 
 local sim_4_size 50000000
-local sim_4_reps 3
+local sim_4_reps 5
 
 *-------------------------------------------------------------------------------
 * Initialization
@@ -67,24 +67,15 @@ forval i=1/`num_sims' {
 		gen x = runiform()
 		gen y = 1 + 2*x + 3*x^2 + 4*x^3 + rnormal()*5*x
 		
-		* Randomize which one goes first
-		local dice = runiform()
-		if `dice'<0.5 {
-			local num1  
-			local num2 2
-		}
-		if `dice'>=0.5 {
-			local num1 2
-			local num2 
-		}
-		
-		* Test out binscatters (in randomized order)
-		timer clear
+		* Test binscatter
 		timer on 1
-		qui binscatter`num1' y x
+		qui binscatter y x
 		timer off 1
+		
+		
+		* Test binscatter2
 		timer on 2
-		qui binscatter`num2' y x
+		qui binscatter2 y x
 		timer off 2
 		
 		* Save results
@@ -109,16 +100,8 @@ local num_sizes = `num_sims'
 
 * List output
 forval i=1/`num_sizes' {
-	qui sum results_new`i', d
-	local med_new = r(p50)
-	qui sum results_old`i', d
-	local med_old = r(p50)
-	local ratio_medians = `med_old' / `med_new'
-	di "Ratio of medians in test `i': `ratio_medians'"
-	qui sum results_new`i'
-	gen results_new`i'_n = results_new`i' / r(mean)
-	gen results_old`i'_n = results_old`i' / r(mean)
-	histogram results_old`i'_n, name(fig`i', replace)
+	gen ratio`i' = results_old`i' / results_new`i'
+	histogram ratio`i', name(fig`i', replace)
 }
 
-sum results_old*_n, d
+sum ratio*, d
