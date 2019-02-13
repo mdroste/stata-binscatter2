@@ -18,13 +18,14 @@ cap program drop binscatter2
 
 * Generate simulated data
 clear all
-set obs 500000
+set obs 50000
 gen x = runiform()
 gen z = 3*x^2 + rnormal()
 gen fe = ceil(runiform()*5)
 gen g = ceil(runiform()*2)
 gen y = fe + 2*x + 3*x^2 + 4*x^3 + z + rnormal()*10*x^2
 gen y2 = fe - 2*x - 3*x^2 - 4*x^3 + z + rbeta(1,300)*2000*x
+gen y3 = 1 + 2*x + 3*x^2 + 4*x^3 + rnormal()*5*x^2
 replace y = y + 2 if g==2
 replace y2 = y2 - 2 if g==2
 tempfile t1
