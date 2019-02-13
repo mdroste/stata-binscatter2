@@ -1,8 +1,8 @@
-v 0.12
+v 0.13
 d
 d 'binscatter2': fast and flexible grouped regressions
 d
-d Distribution-Date: 20190204
+d Distribution-Date: 20190213
 d
 f binscatter2.ado
 f binscatter2.sthlp
