@@ -30,7 +30,6 @@ Anyone who has used binscatter on a large dataset appreciates the fact that it c
 
 In addition, binscatter2 contains a handful of additional new features intended to enhance the functionality of binscatter. For one, binscatter now allows quantile intervals to be overlaid on top of the graph. This allows the user to gauge variation in the conditional distribution of y given x. 
 
-This project is being distributed separately from the original binscatter repository for a few reasons. For one, binscatter2 requires the compiled package gtools to run, and therefore the 'update' process of using binscatter2 may be nontrivial, especially for Stata users working on server environments that may not have privileges to compile code or modify available Stata packages. Second, incorporating the functionality of gtools into binscatter involves large changes to many parts of the code, and I can't guarantee that the multiple existing unresolved issues/forks on the Binscatter project page can be resolved easily with the present version of Binscatter2. Third, Binscatter2 creates a host of new features - given this and the aforementioned large changes to the code, it may have bugs to resolve. 
 
 
 New Features
@@ -60,6 +59,8 @@ net install binscatter2, from(https://raw.githubusercontent.com/mdroste/stata-bi
 I plan on submitting a stable version of this project to the SSC repository very soon.
 
 
+This project is being distributed separately from the original binscatter repository for a few reasons. For one, binscatter2 requires the compiled package gtools to run, potentially making the update process nontrivial, especially for Stata users working on server environments that may not have privileges to compile code or modify available Stata packages. Second, incorporating the functionality of gtools into binscatter involves large changes to many parts of the code, and I can't guarantee that the multiple existing unresolved issues/forks on the Binscatter project page can be resolved easily with the present version of Binscatter2. Third, Binscatter2 creates a host of new features - given this and the aforementioned large changes to the code, it may have bugs to resolve. 
+
 Usage
 ---------------------------------
 
@@ -70,7 +71,7 @@ help binscatter2
 
 Usage of binscatter2 is nearly identical to binscatter and should be familiar to any users of the original package.
 
-This repository includes a do-file, check.do, that provides a number of checks to verify the functionality of each option within binscatter2 and demonstrates equivalence to binscatter for options shared by both programs.
+This repository includes a do-file, check.do, that provides a number of checks to verify the functionality of each option within binscatter2 and demonstrates equivalence to binscatter for options shared by both programs. The file check_speed.do runs Monte Carlo simulations that were used in the benchmark section of this readme.
 
 
 
