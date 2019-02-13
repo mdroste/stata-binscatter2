@@ -42,6 +42,7 @@ syntax varlist(min=2 numeric) [if] [in] [aweight fweight], ///
 	quantiles(numlist integer ascending) ///
 	nodofile ///
 	nograph ///
+	fast ///
 	replace ///
 	nofastxtile ///
 	randvar(varname numeric) ///
@@ -580,12 +581,12 @@ if "`by'"!="" {
 	qui save `t1'
 
 	* Start a counter of by groups
-	global by_counter = 0
+	local by_counter = 0
 
 	* For each by-group...
 	qui foreach byval in `byvals' `noby' {
 
-		global by_counter = $by_counter + 1
+		local by_counter = `by_counter' + 1
 
 		* Keep only obs in current by-group
 		keep if `by'==`byval'
@@ -600,7 +601,7 @@ if "`by'"!="" {
 		foreach depvar of varlist `y_vars_r' {
 			global counter_depvar = $counter_depvar + 1
 			local c1 = $counter_depvar
-			local c2 = $by_counter
+			local c2 = `by_counter'
 			tempname y`c1'_scatterpts
 			mkmat `x_r' `depvar', mat(temp`c2'_`c1')
 		}
@@ -612,8 +613,8 @@ if "`by'"!="" {
 	* Concatenate by-group matrices
 	forval i=1/$counter_depvar {
 		mat `y`i'_scatterpts' = temp1_`i'
-		if $by_counter>1 {
-			forval j=2/$by_counter {
+		if `by_counter'>1 {
+			forval j=2/`by_counter' {
 				mat `y`i'_scatterpts' = `y`i'_scatterpts',temp`j'_`i'
 			}
 		}
@@ -893,42 +894,47 @@ if ("`savedata'"!="") {
 * Restore dataset
 restore
 
-* Return sample
-ereturn post, esample(`touse')
+* If fast option not enabled, return stuff
+if "`fast'"=="" {
 
-* Return sample size
-ereturn scalar N = `samplesize'
+	* Return sample
+	ereturn post, esample(`touse')
 
-* Return the graph command
-ereturn local graphcmd `"`graphcmd'"'
+	* Return sample size
+	ereturn scalar N = `samplesize'
 
-* If linetype specified: return matrix of regression coefficients
-if inlist("`linetype'","lfit","qfit","expfit","logfit") {
-	forvalues yi=`ynum'(-1)1 {
-		ereturn matrix y`yi'_coefs=`y`yi'_coefs'
+	* Return the graph command
+	ereturn local graphcmd `"`graphcmd'"'
+
+	* If linetype specified: return matrix of regression coefficients
+	if inlist("`linetype'","lfit","qfit","expfit","logfit") {
+		forvalues yi=`ynum'(-1)1 {
+			ereturn matrix y`yi'_coefs=`y`yi'_coefs'
+		}
 	}
-}
 
-* If RD option specified: return RD intervals
-if ("`rd'"!="") {
-	tempname rdintervals
-	matrix `rdintervals' = (. \ `=subinstr("`rd'"," ","\",.)' ) , ( `=subinstr("`rd'"," ","\",.)' \ .)
-	forvalues i=1/`=rowsof(`rdintervals')' {
-		local rdintervals_labels `rdintervals_labels' rd`i'
+	* If RD option specified: return RD intervals
+	if ("`rd'"!="") {
+		tempname rdintervals
+		matrix `rdintervals' = (. \ `=subinstr("`rd'"," ","\",.)' ) , ( `=subinstr("`rd'"," ","\",.)' \ .)
+		forvalues i=1/`=rowsof(`rdintervals')' {
+			local rdintervals_labels `rdintervals_labels' rd`i'
+		}
+		matrix rownames `rdintervals' = `rdintervals_labels'
+		matrix colnames `rdintervals' = gt lt_eq
+		ereturn matrix rdintervals = `rdintervals'
 	}
-	matrix rownames `rdintervals' = `rdintervals_labels'
-	matrix colnames `rdintervals' = gt lt_eq
-	ereturn matrix rdintervals = `rdintervals'
-}
 
-* If a numeric by-variable is specified: return matrix of by-values
-if ("`by'"!="" & "`by'"=="`byvarname'") {
-	forvalues i=1/`=rowsof(`byvalmatrix')' {
-		local byvalmatrix_labels `byvalmatrix_labels' by`i'
+	* If a numeric by-variable is specified: return matrix of by-values
+	if ("`by'"!="" & "`by'"=="`byvarname'") {
+		forvalues i=1/`=rowsof(`byvalmatrix')' {
+			local byvalmatrix_labels `byvalmatrix_labels' by`i'
+		}
+		matrix rownames `byvalmatrix' = `byvalmatrix_labels'
+		matrix colnames `byvalmatrix' = `by'
+		ereturn matrix byvalues = `byvalmatrix'
 	}
-	matrix rownames `byvalmatrix' = `byvalmatrix_labels'
-	matrix colnames `byvalmatrix' = `by'
-	ereturn matrix byvalues = `byvalmatrix'
+
 }
 
 * Lastly: merge back on genxq(identifier), if applicable

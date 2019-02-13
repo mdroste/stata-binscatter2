@@ -9,25 +9,19 @@ clear all
 * Setup options
 *-------------------------------------------------------------------------------
 
-local num_sims 6
+local num_sims 4
 
-local sim_1_size 100000
-local sim_1_reps 5
+local sim_1_size 1000000
+local sim_1_reps 10
 
-local sim_2_size 1000000
-local sim_2_reps 5
+local sim_2_size 10000000
+local sim_2_reps 20
 
-local sim_3_size 10000000
+local sim_3_size 25000000
 local sim_3_reps 5
 
 local sim_4_size 50000000
-local sim_4_reps 2
-
-local sim_5_size 100000000
-local sim_5_reps 1
-
-local sim_6_size 500000000
-local sim_6_reps 1
+local sim_4_reps 3
 
 *-------------------------------------------------------------------------------
 * Initialization
@@ -36,11 +30,11 @@ local sim_6_reps 1
 * Cheap fix: define `sizes' and `num_sims'
 local max_reps 0
 forval i=1/`num_sims' {
-	di "sim i reps: `sim_`i'_reps'"
 	local sizes `sizes' `sims_`i'_size'
 	if `sim_`i'_reps' > `max_reps' local max_reps = `sim_`i'_reps'
 }
 di
+
 * Create matrices to store results
 set matsize 10000
 mat results_old = J(`max_reps',`num_sims',.) 
@@ -127,4 +121,4 @@ forval i=1/`num_sizes' {
 	histogram results_old`i'_n, name(fig`i', replace)
 }
 
-sum results_old*_n
+sum results_old*_n, d

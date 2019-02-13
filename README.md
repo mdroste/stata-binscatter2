@@ -19,7 +19,7 @@ Faster binned scatterplots in Stata with a few new bells and whistles
 Overview
 ---------------------------------
 
-binscatter2 is a faster method for producing binned scatterplots in Stata. It nests the functionality of the excellent [binscatter](https://github.com/michaelstepner/binscatter) package, but runs substantially faster for big datasets (see [benchmarks](#benchmarks)). In addition, binscatter2 offers a handful of new features: the ability to overlay additional information about the conditional probability distribution (e.g. quantile intervals) and expanded options for fit lines. saving, and multi-way fixed effects.
+binscatter2 is a program for producing binned scatterplots in Stata. It nests the functionality of the excellent [binscatter](https://github.com/michaelstepner/binscatter) package, but runs substantially faster for big datasets (see [benchmarks](#benchmarks)). In addition, binscatter2 offers a handful of new features: the ability to overlay additional information about the conditional probability distribution (e.g. quantile intervals) and expanded options for fit lines. saving, and multi-way fixed effects.
 
 Motivation
 ---------------------------------
@@ -89,6 +89,7 @@ The following items will be addressed soon:
 - [ ] Finish benchmarking section of this readme
 - [ ] Include a few usage pictures
 - [ ] Allow for higher-order polynomial fit lines
+- [ ] Arbitrary quantile dots (i.e. not just mean, median)
 - [ ] Save out quantile intervals when using savedata() option
 - [ ] More aesthetic options on quantiles() option
 
