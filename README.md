@@ -19,7 +19,7 @@ Faster binned scatterplots in Stata with a few new bells and whistles
 Overview
 ---------------------------------
 
-binscatter2 is a faster method for producing binned scatterplots in Stata. It yields the same functionality as Michael Stepner's excellent -binscatter- package (originally developed with Jessica Laird), but scales much better for big datasets, like those that are now commonly used in applied economics research, typically running several times faster for datasets over one million observations. In addition, binscatter2 offers a handful of new features: expanded options for fit lines, saving, and quantile intervals.
+binscatter2 is a faster method for producing binned scatterplots in Stata. It yields the same functionality as Michael Stepner's excellent -binscatter- package (originally developed with Jessica Laird), but scales much better for big datasets, like those that are now commonly used in applied economics research, typically running several times faster for datasets over one million observations. In addition, binscatter2 offers a handful of new features: the ability to overlay additional information about the conditional probability distribution (e.g. quantile intervals) and expanded options for fit lines/saving.
 
 Motivation
 ---------------------------------
@@ -30,7 +30,7 @@ Anyone who has used binscatter on a large dataset appreciates the fact that it c
 
 In addition, binscatter2 contains a handful of additional new features intended to enhance the functionality of binscatter. For one, binscatter now allows quantile intervals to be overlaid on top of the graph. This allows the user to gauge variation in the conditional distribution of y given x. 
 
-This project is being distributed separately from the original binscatter repository for a few reasons. For one, binscatter2 requires the compiled package gtools to run, and therefore the 'update' process of using binscatter2 may be nontrivial, especially for Stata users working on server environments that may not have privileges to compile code or modify available Stata packages. Second, incorporating the functionality of gtools into binscatter involves large changes to many parts of the code, and I can't guarantee that the multiple existing unresolved issues/forks on the Binscatter project page can be resolved easily with the present version of Binscatter2. Third, Binscatter2 creates a host of new features - given this and the aforementioned large changes to the code, it may have bugs to resolve. Michael Stepner is quite busy with his day job of being an economist, and I may have more time to fix these issues in the near term.
+This project is being distributed separately from the original binscatter repository for a few reasons. For one, binscatter2 requires the compiled package gtools to run, and therefore the 'update' process of using binscatter2 may be nontrivial, especially for Stata users working on server environments that may not have privileges to compile code or modify available Stata packages. Second, incorporating the functionality of gtools into binscatter involves large changes to many parts of the code, and I can't guarantee that the multiple existing unresolved issues/forks on the Binscatter project page can be resolved easily with the present version of Binscatter2. Third, Binscatter2 creates a host of new features - given this and the aforementioned large changes to the code, it may have bugs to resolve. 
 
 
 New Features
@@ -86,6 +86,7 @@ Todo
 The following items will be addressed soon:
 
 - [ ] Finish benchmarking section of this readme
+- [ ] Include a couple pictures o
 - [ ] Allow for higher-order polynomial fit lines
 - [ ] Save out quantile intervals when using savedata() option
 - [ ] More aesthetic options on quantiles() option
