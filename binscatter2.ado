@@ -34,7 +34,7 @@ syntax varlist(min=2 numeric) [if] [in] [aweight fweight], ///
 	rd(numlist ascending) ///
 	reportreg ///
 	COLors(string) ///
-	MColors(string) ///
+	MColors(string asis) ///
 	LColors(string) ///
 	Msymbols(string) ///
 	savegraph(string) ////
@@ -703,7 +703,7 @@ foreach byval in `byvals' `noby' {
 		}
 
 		* Add options
-		local scatter_options `connect' mcolor(`: word `c' of `mcolors'') lcolor(`: word `c' of `lcolors'') `symbol_prefix'`: word `c' of `msymbols''`symbol_suffix'
+		local scatter_options `connect' mcolor("`: word `c' of `mcolors''") lcolor(`: word `c' of `lcolors'') `symbol_prefix'`: word `c' of `msymbols''`symbol_suffix'
 		local scatters `scatters', `scatter_options')
 		if ("`savedata'"!="") local savedata_scatters `savedata_scatters', `scatter_options')
 

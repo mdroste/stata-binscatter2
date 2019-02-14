@@ -29,7 +29,7 @@ gen fe = ceil(runiform()*5)
 gen g = ceil(runiform()*2)
 gen y = fe + 2*x + 3*x^2 + 4*x^3 + z + rnormal()*10*x^2
 gen y2 = fe - 2*x - 3*x^2 - 4*x^3 + z + rbeta(1,300)*2000*x
-gen y3 = 1 + 2*x + 3*x^2 + 4*x^3 + rnormal() + rbeta(1,3)*10*x^2
+gen y3 = 1 + 2*x + 3*x^2 + 4*x^3 + rnormal() + rbeta(1,3)*20*x^2
 replace y = y + 2 if g==2
 replace y2 = y2 - 2 if g==2
 tempfile t1
