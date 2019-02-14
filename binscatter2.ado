@@ -33,9 +33,9 @@ syntax varlist(min=2 numeric) [if] [in] [aweight fweight], ///
 	LINEtype(string) ///
 	rd(numlist ascending) ///
 	reportreg ///
-	COLors(string) ///
+	COLors(string asis) ///
 	MColors(string asis) ///
-	LColors(string) ///
+	LColors(string asis) ///
 	Msymbols(string) ///
 	savegraph(string) ////
 	savedata(string) ///
@@ -637,12 +637,12 @@ if "`rd'"!="" {
 if `"`colors'"'=="" local colors navy maroon forest_green dkorange teal cranberry ///
 	lavender khaki sienna emidblue emerald brown erose gold bluishgray
 if `"`mcolors'"'=="" {
-	if (`ynum'==1 & `bynum'==1 & "`linetype'"!="connect") local mcolors `: word 1 of `colors''
-	else local mcolors `colors'
+	if (`ynum'==1 & `bynum'==1 & "`linetype'"!="connect") local mcolors : word 1 of `colors'
+	else local mcolors "`colors'"
 }
 if `"`lcolors'"'=="" {
-	if (`ynum'==1 & `bynum'==1 & "`linetype'"!="connect") local lcolors `: word 2 of `colors''
-	else local lcolors `colors'
+	if (`ynum'==1 & `bynum'==1 & "`linetype'"!="connect") local lcolors : word 2 of `colors'
+	else local lcolors `"`colors'"'
 }
 local num_mcolor = wordcount(`"`mcolors'"')
 local num_lcolor = wordcount(`"`lcolors'"')
@@ -653,7 +653,6 @@ if "`msymbols'"!="" {
 	local symbol_prefix "msymbol("
 	local symbol_suffix ")"
 }
-
 
 *-------------------------------------------------------------------------------
 * Define scatter points
@@ -703,7 +702,7 @@ foreach byval in `byvals' `noby' {
 		}
 
 		* Add options
-		local scatter_options `connect' mcolor("`: word `c' of `mcolors''") lcolor(`: word `c' of `lcolors'') `symbol_prefix'`: word `c' of `msymbols''`symbol_suffix'
+		local scatter_options `connect' mcolor("`: word `c' of `mcolors''") lcolor("`: word `c' of `lcolors''") `symbol_prefix'`: word `c' of `msymbols''`symbol_suffix'
 		local scatters `scatters', `scatter_options')
 		if ("`savedata'"!="") local savedata_scatters `savedata_scatters', `scatter_options')
 
@@ -790,16 +789,16 @@ if inlist(`"`linetype'"',"lfit","qfit","logfit","expfit") {
 					local leftbound  = `fitline_bounds'[1,`counter_rd']
 					local rightbound = `fitline_bounds'[1,`counter_rd'+1]
 					if "`linetype'"=="lfit" {
-						local fits `fits' (function `coef_lin'*x+`coef_cons', range(`leftbound' `rightbound') lcolor(`: word `c' of `lcolors''))
+						local fits `fits' (function `coef_lin'*x+`coef_cons', range(`leftbound' `rightbound') lcolor("`: word `c' of `lcolors''"))
 					}
 					if "`linetype'"=="logfit" {
-						local fits `fits' (function `coef_lin'*log(x)+`coef_cons', range(`leftbound' `rightbound') lcolor(`: word `c' of `lcolors''))
+						local fits `fits' (function `coef_lin'*log(x)+`coef_cons', range(`leftbound' `rightbound') lcolor("`: word `c' of `lcolors''"))
 					}
 					if "`linetype'"=="expfit" {
-						local fits `fits' (function `coef_lin'*exp(x)+`coef_cons', range(`leftbound' `rightbound') lcolor(`: word `c' of `lcolors''))
+						local fits `fits' (function `coef_lin'*exp(x)+`coef_cons', range(`leftbound' `rightbound') lcolor("`: word `c' of `lcolors''"))
 					}
 					if "`linetype'"=="qfit" {
-						local fits `fits' (function `coef_quad'*x^2+`coef_lin'*x+`coef_cons', range(`leftbound' `rightbound') lcolor(`: word `c' of `lcolors''))
+						local fits `fits' (function `coef_quad'*x^2+`coef_lin'*x+`coef_cons', range(`leftbound' `rightbound') lcolor("`: word `c' of `lcolors''"))
 					}
 				}
 			}

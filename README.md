@@ -54,7 +54,7 @@ There are two options for installing binscatter2.
 1. The most recent version can be installed from Github with the following Stata command:
 
 ```stata
-net install binscatter2, from(https://raw.githubusercontent.com/mdroste/stata-binscatter2/master/)
+net install binscatter2, from("https://raw.githubusercontent.com/mdroste/stata-binscatter2/master/")
 ```
 
 2. A ZIP containing the program can be downloaded and manually placed on the user's adopath from Github.
