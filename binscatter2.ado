@@ -260,7 +260,7 @@ local touse_first = _N - `samplesize' + 1
 local touse_last  = _N
 
 * Try to speed things up
-keep if `touse'
+qui keep if `touse'
 
 * Parse varlist into y-vars and x-var
 local x_var  = word("`varlist'",-1)
@@ -589,10 +589,10 @@ if "`by'"!="" {
 		local by_counter = `by_counter' + 1
 
 		* Keep only obs in current by-group
-		keep if `by'==`byval'
+		qui keep if `by'==`byval'
 
 		* Collapse residualized y vars and x var within each x bin
-		drop if `xq'==.
+		qui drop if `xq'==.
 		gcollapse `y_vars_r' `x_r', by(`xq') fast
 
 		* Make matrix containing mean x and mean y within each bin for each y var
