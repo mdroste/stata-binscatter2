@@ -35,12 +35,12 @@ In addition, binscatter2 contains a handful of additional new features intended 
 New Features
 ---------------------------------
 
-In addition to general performance improvements, binscatter2 adds a few new features to binscatter. In particular:
+In addition to substantial performance improvements for large datasets, binscatter2 adds a few new features to binscatter. In particular:
 
-- [x] **Support for reghdfe**. If [reghdfe](https://github.com/sergiocorreia/reghdfe) is installed, it is automatically used (unless specified otherwise with noreghdfe option). This offers modest further speed improvements and allows the user to directly absorb multi-way fixed effects. 
-- [x] **New distributional statistics**. The user can overlay quantiles of the sample distribution on top of the means/medians within each bin, providing more information on the shape of the conditional distribution of y given x.
+- [x] **Multi-way fixed effects**. If [reghdfe](https://github.com/sergiocorreia/reghdfe) is installed, multi-way fixed effects can be specified in the absorb() option.
+- [x] **Quantile intervals**. The user can overlay quantiles of the sample distribution on top of the means/medians within each bin, providing more information on the shape of the conditional distribution of y given x.
 - [x] **Flexible save commands**. The user can save scatter points out to .dta files (extension automatically detected by input of savedata() option) and also choose to omit the do-file created by savedata() with the nodofile option.
-- [x] **Expanded fit line options**. Exponential and logarithmic fits now supported, with higher-order polynomials coming soon.
+- [x] **More fit line options**. Exponential and logarithmic fits now supported, with higher-order polynomials coming soon.
 
 
 ![binscatter2 demo](benchmarks/ex.png "binscatter2 demo")
@@ -94,6 +94,7 @@ The following items will be addressed soon:
 - [ ] Include a few usage pictures
 - [ ] Allow for higher-order polynomial fit lines
 - [ ] Arbitrary quantile dots (i.e. not just mean, median)
+- [ ] Fix reghdfe support
 - [ ] Save out quantile intervals when using savedata() option
 - [ ] More aesthetic options on quantiles() option
 
