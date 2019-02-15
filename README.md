@@ -38,9 +38,9 @@ New Features
 In addition to substantial performance improvements for large datasets, binscatter2 adds a few new features to binscatter. In particular:
 
 - [x] **Multi-way fixed effects**. If [reghdfe](https://github.com/sergiocorreia/reghdfe) is installed, multi-way fixed effects can be specified in the absorb() option.
-- [x] **Quantile intervals**. The user can overlay quantiles of the sample distribution on top of the means/medians within each bin, providing more information on the shape of the conditional distribution of y given x.
-- [x] **Flexible save commands**. The user can save scatter points out to .dta files (extension automatically detected by input of savedata() option) and also choose to omit the do-file created by savedata() with the nodofile option.
-- [x] **More fit line options**. Exponential and logarithmic fits now supported, with higher-order polynomials coming soon.
+- [x] **Quantile intervals**. Overlay quantiles of the sample distribution on top of the means/medians within each bin, providing more information on the shape of the conditional distribution of y given x.
+- [x] **Flexible save commands**. Save scatter points out to .dta files and also choose to omit the do-file created by savedata() with the nodofile option.
+- [x] **More fit line options**. Exponential and logarithmic fits, with higher-order polynomials coming soon.
 
 
 ![binscatter2 demo](benchmarks/ex.png "binscatter2 demo")
@@ -59,10 +59,8 @@ net install binscatter2, from("https://raw.githubusercontent.com/mdroste/stata-b
 
 2. A ZIP containing the program can be downloaded and manually placed on the user's adopath from Github.
 
-I plan on submitting a stable version of this project to the SSC repository very soon.
+This project will be submitted to the SSC repository very soon.
 
-
-This project is being distributed separately from the binscatter repository for a few reasons. For one, binscatter2 requires the compiled package gtools to run, potentially making the update process nontrivial, especially for Stata users working on server environments that may not have privileges to compile code or modify available Stata packages. Second, incorporating the functionality of gtools into binscatter involves large changes to many parts of the code, and I can't guarantee that the multiple existing unresolved issues/forks on the binscatter project page can be resolved easily with the present version of binscatter2. Third, binscatter2 creates a host of new features - given this and the aforementioned large changes to the code, it may have bugs to resolve. 
 
 Usage
 ---------------------------------
