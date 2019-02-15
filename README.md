@@ -70,7 +70,7 @@ Complete internal documentation is provided with the installation and can be acc
 help binscatter2
 ````
 
-Basic usage of binscatter2 is nearly identical to binscatter and should be familiar to any users of the original package.
+Basic usage of binscatter2 is identical to binscatter and should be familiar to any users of the original package.
 
 This repository includes a do-file, check.do, that provides a number of checks to verify the functionality of each option within binscatter2 and demonstrates equivalence to binscatter for options shared by both programs. The file check_speed.do runs Monte Carlo simulations that were used in the benchmark section of this readme.
 
