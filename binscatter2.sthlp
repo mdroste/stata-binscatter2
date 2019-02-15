@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.13 13feb2019}{...}
+{* *! version 0.15 15feb2019}{...}
 {viewerjumpto "Syntax" "binscatter2##syntax"}{...}
 {viewerjumpto "Description" "binscatter2##description"}{...}
 {viewerjumpto "Options" "binscatter2##options"}{...}

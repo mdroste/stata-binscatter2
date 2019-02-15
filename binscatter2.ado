@@ -1,9 +1,9 @@
-*! binscatter2, v0.14 (13feb2019), Michael Droste, mdroste@fas.harvard.edu
+*! binscatter2, v0.15 (15feb2019), Michael Droste, mdroste@fas.harvard.edu
 *===============================================================================
 * Program: binscatter2.ado
 * Purpose: New functionality and efficiency improvements for binscatter.
 * Author:  Michael Droste
-* Version: 0.14 (02/13/2019)
+* Version: 0.14 (02/15/2019)
 * Credits: This program was made possible due to the collective efforts of a 
 *          handful of Stata superstars, among them:
 *           - Michael Stepner, who wrote the original binscatter (with 
@@ -52,11 +52,6 @@ syntax varlist(min=2 numeric) [if] [in] [aweight fweight], ///
 	*]
 
 set more off
-
-*---------------------------------------------------------------------------
-* Preserve
-* If genxq specified, then create an identifier to merge it on later
-*---------------------------------------------------------------------------
 	
 *---------------------------------------------------------------------------
 * Check prerequisite packages
@@ -88,7 +83,7 @@ if `nbins'!=20 {
 		exit
 	}
 	di as text "NOTE: legacy binscatter option nbins() has been renamed nquantiles(), and is supported only for backward compatibility."
-	local nquantiles=`nbins'
+	local nquantiles = `nbins'
 }
 	
 * Can't specify both create_xq() (legacy) and genxq() options
@@ -98,7 +93,7 @@ if "`create_xq'"!="" {
 		exit
 	}
 	di as text "NOTE: legacy binscatter option create_xq has been renamed genxq(), and is supported only for backward compatibility."
-	local genxq="q_"+word("`varlist'",-1)
+	local genxq = "q_"+word("`varlist'",-1)
 }
 	
 * Can't specify both x_q() (legacy) and xq() options
@@ -154,13 +149,13 @@ if "`randcut'"!="1" | "`randvar'"!="" | "`randn'"!="-1" {
 * Set default linetype and check valid
 if ("`linetype'"=="") local linetype lfit
 else if !inlist("`linetype'","connect","lfit","qfit","expfit","logfit","none") {
-	di as error "linetype() must either be connect, lfit, qfit, logfit, expfit, or none"
+	di as error "Error: linetype() invalid: must be connect, lfit, qfit, logfit, expfit, or none"
 	exit
 }
 
 * Cannot specify more than one of genxq(), xq(), and discrete
 if ("`genxq'"!="" & ("`xq'"!="" | "`discrete'"!="")) | ("`xq'"!="" & "`discrete'"!="") {
-	di as error "Cannot specify more than one of genxq(), xq(), and discrete simultaneously."
+	di as error "Error: Cannot specify more than one of genxq(), xq(), and discrete simultaneously."
 	exit
 }
 
@@ -173,7 +168,7 @@ if "`genxq'"!="" {
 if "`xq'"!="" {
 	capture assert `xq'==int(`xq') & `xq'>0
 	if _rc!=0 {
-		di as error "The xq() option must contain only positive integers."
+		di as error "Error: The xq() option must contain only positive integers."
 		exit
 	}
 	if ("`controls'`absorb'"!="") {
@@ -254,13 +249,13 @@ if ("`weight'"!="") local wt [`weight'`exp']
 * Mark sample (reflects the if/in conditions, and includes only nonmissing observations)
 marksample touse
 markout `touse' `by' `xq' `controls' `absorb', strok
-qui count if `touse'
-local samplesize  = r(N)
-local touse_first = _N - `samplesize' + 1
-local touse_last  = _N
 
 * Try to speed things up
 qui keep if `touse'
+
+* Count sample - XX is this valid?
+qui count
+local samplesize  = r(N)
 
 * Parse varlist into y-vars and x-var
 local x_var  = word("`varlist'",-1)
@@ -280,7 +275,7 @@ if "`by'"!="" {
 	local bylabel `:value label `by'' /*catch value labels for numeric by-vars too*/ 	
 	tempname byvalmatrix
 	qui tab `by' if `touse', nofreq matrow(`byvalmatrix')	
-	local bynum=r(r)
+	local bynum = r(r)
 	forvalues i=1/`bynum' {
 		local byvals `byvals' `=`byvalmatrix'[`i',1]'
 	}
@@ -304,7 +299,7 @@ preserve
 *-------------------------------------------------------------------------------
 
 * If controls() or absorb() are specified...
-if (`"`controls'`absorb'"'!="") quietly {
+if `"`controls'`absorb'"'!="" quietly {
 	
 	* Parse absorb
 	if `"`absorb'"'!="" {
@@ -396,25 +391,25 @@ if inlist("`linetype'","lfit","qfit","logfit","expfit") `reg_verbosity' {
 			* Display text headers
 			if "`reportreg'"!="" {
 				di "{txt}{hline}"
-				if ("`by'"!="") {
+				if "`by'"!="" {
 					if ("`bylabel'"=="") di "-> `byvarname' = `byval'"
 					else {
 						di "-> `byvarname' = `: label `bylabel' `byval''"
 					}
 				}
-				if ("`rd'"!="") {
-					if (`counter_rd'==1) di "RD: `x_var'<=`1'"
-					else if ("`2'"!="") di "RD: `x_var'>`1' & `x_var'<=`2'"
+				if "`rd'"!="" {
+					if `counter_rd'==1 di "RD: `x_var'<=`1'"
+					else if "`2'"!="" di "RD: `x_var'>`1' & `x_var'<=`2'"
 					else di "RD: `x_var'>`1'"
 				}
 			}
 				
 			* Set conditions on reg
 			local conds `touse'
-			if ("`by'"!="" ) local conds `conds' & `by'==`byval'
-			if ("`rd'"!="") {
-				if (`counter_rd'==1) local conds `conds' & `x_r'<=`1'
-				else if ("`2'"!="") local conds `conds' & `x_r'>`1' & `x_r'<=`2'
+			if "`by'"!=""  local conds `conds' & `by'==`byval'
+			if "`rd'"!="" {
+				if `counter_rd'==1 local conds `conds' & `x_r'<=`1'
+				else if "`2'"!="" local conds `conds' & `x_r'>`1' & `x_r'<=`2'
 				else local conds `conds' & `x_r'>`1'
 			}
 
@@ -430,16 +425,20 @@ if inlist("`linetype'","lfit","qfit","logfit","expfit") `reg_verbosity' {
 				}
 
 				* Perform regressions
-				if "`reg_verbosity'"=="quietly" capture reg `depvar' `x_r2' `x_r' `wt' if `conds', noheader notable
-				else capture noisily reg `depvar' `regressor_list' `wt' if `conds'
+				if "`reg_verbosity'"=="quietly" {
+					capture reg `depvar' `x_r2' `x_r' `wt' if `conds', noheader notable
+				}
+				else {
+					capture noisily reg `depvar' `regressor_list' `wt' if `conds'
+				}
 
 				* Store results
 				if _rc==0 matrix e_b_temp=e(b)
-				else if (_rc==2000) {
-					if ("`reg_verbosity'"=="quietly") di as error "no observations for one of the fit lines. add 'reportreg' for more info."
-					if ("`linetype'"=="lfit") matrix e_b_temp = J(1,2,.)
-					if ("`linetype'"=="logfit") matrix e_b_temp = J(1,2,.)
-					if ("`linetype'"=="expfit") matrix e_b_temp = J(1,2,.)
+				else if _rc==2000 {
+					if("`reg_verbosity'"=="quietly" di as error "No observations for one of the fit lines. add 'reportreg' for more info."
+					if "`linetype'"=="lfit" matrix e_b_temp = J(1,2,.)
+					if "`linetype'"=="logfit" matrix e_b_temp = J(1,2,.)
+					if "`linetype'"=="expfit" matrix e_b_temp = J(1,2,.)
 					else matrix e_b_temp=J(1,3,.)
 				}
 				else {
@@ -564,7 +563,8 @@ if "`by'"=="" {
 
 	* If quantiles specified, create a macro
 	if "`quantiles'"!="" {
-		local quantile_macro (rarea p`q2' p`q1' `x_r', color(gs12%40))
+		if di `c(stata_version)' >= 15.0 local opacity %40
+		local quantile_macro (rarea p`q2' p`q1' `x_r', color(gs12`opacity'))
 	}
 
 }
@@ -704,15 +704,15 @@ foreach byval in `byvals' `noby' {
 		* Add options
 		local scatter_options `connect' mcolor("`: word `c' of `mcolors''") lcolor("`: word `c' of `lcolors''") `symbol_prefix'`: word `c' of `msymbols''`symbol_suffix'
 		local scatters `scatters', `scatter_options')
-		if ("`savedata'"!="") local savedata_scatters `savedata_scatters', `scatter_options')
+		if "`savedata'"!="" local savedata_scatters `savedata_scatters', `scatter_options')
 
 		* Add legend
 		if "`by'"=="" {
-			if (`ynum'==1) local legend_labels off
+			if `ynum'==1 local legend_labels off
 			else local legend_labels `legend_labels' lab(`counter_series' `depvar')
 		}
 		else {
-			if ("`bylabel'"=="") local byvalname=`byval'
+			if "`bylabel'"=="" local byvalname=`byval'
 			else {
 				local byvalname `: label `bylabel' `byval''
 			}
