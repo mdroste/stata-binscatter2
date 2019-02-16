@@ -563,7 +563,7 @@ if "`by'"=="" {
 
 	* If quantiles specified, create a macro
 	if "`quantiles'"!="" {
-		if di `c(stata_version)' >= 15.0 local opacity %40
+		if `c(stata_version)' >= 15.0 local opacity %40
 		local quantile_macro (rarea p`q2' p`q1' `x_r', color(gs12`opacity'))
 	}
 
