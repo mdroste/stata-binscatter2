@@ -420,17 +420,9 @@ if "`genxq'"!="" {
 
 if "`altcontrols'"!="" {
 
-	* Residualize yvars
-	tempvar yhat
-	_regress `xvar' `controls' `wt', `absorb' noheader notable
-	predict `yhat'
-	foreach v in varlist `controls' {
-		noi di "Current var: `v'"
-	}
-
 	* Residualize y variables
 	local y_vars_r 
-	foreach yvar of varlist `y_vars' {
+	qui foreach yvar of varlist `y_vars' {
 		tempvar yhat
 		regress `yvar' i.`xq' `controls' `wt', `absorb' noheader notable
 		predict `yhat' if e(sample), xb
@@ -442,8 +434,6 @@ if "`altcontrols'"!="" {
 	}
 
 }
-
-noi di "XX yvarsr: `y_vars_r'"
 
 
 *-------------------------------------------------------------------------------
