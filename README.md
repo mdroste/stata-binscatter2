@@ -19,7 +19,7 @@ Faster binned scatterplots in Stata with a few new bells and whistles
 Overview
 ---------------------------------
 
-binscatter2 is a program for producing binned scatterplots in Stata. It nests the functionality of the excellent [binscatter](https://github.com/michaelstepner/binscatter) package, but runs substantially faster for big datasets (see [benchmarks](#benchmarks)). In addition, binscatter2 offers a handful of new features: the ability to overlay additional information about the conditional probability distribution (e.g. quantile intervals) and additional options for fit lines, saving, and multi-way fixed effects.
+binscatter2 is a program for producing binned scatterplots in Stata. It inherits the syntax and functionality of the excellent [binscatter](https://github.com/michaelstepner/binscatter) package, but runs substantially faster for big datasets (see [benchmarks](#benchmarks)). In addition, binscatter2 offers a handful of new features: the ability to overlay additional information about the conditional probability distribution (e.g. quantile intervals), an alternative procedure to adjust for controls suggested by [Cattaneo et al. (2019)](https://sites.google.com/site/nppackages/binsreg/Cattaneo-Crump-Farrell-Feng_2019_Binscatter.pdf), additional options for fit lines and saving, and multi-way fixed effects.
 
 Motivation
 ---------------------------------
@@ -49,11 +49,13 @@ In addition to substantial performance improvements for large datasets (see [ben
 Installation
 ---------------------------------
 
-There are two options for installing binscatter2.
+There are two options for installing binscatter2. The only prerequisite is the gtools command, which can be installed from Github or the SSC repository.
+
 
 1. The most recent version can be installed from Github with the following Stata command:
 
 ```stata
+ssc install gtools
 net install binscatter2, from("https://raw.githubusercontent.com/mdroste/stata-binscatter2/master/")
 ```
 
