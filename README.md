@@ -102,6 +102,8 @@ As the name suggests, this program builds extensively on the indispenseable bins
 
 In addition, binscatter2 would certainly not have been possible without [gtools](https://github.com/mcaceresb/stata-gtools) by Mauricio Caceres Bravo, which in turn would not have happened without [ftools](https://github.com/sergiocorreia/ftools), developed by Sergio Correa.
 
+The alternative covariate adjustment procedure (enabled with the option altcontrols) was formalized by [Cattaneo et al. (2019)](https://sites.google.com/site/nppackages/binsreg/Cattaneo-Crump-Farrell-Feng_2019_Binscatter.pdf).
+
 
 License
 ---------------------------------
