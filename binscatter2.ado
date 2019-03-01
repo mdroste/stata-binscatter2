@@ -1,9 +1,9 @@
-*! binscatter2, v0.15 (15feb2019), Michael Droste, mdroste@fas.harvard.edu
+*! binscatter2, v0.16 (28feb2019), Michael Droste, mdroste@fas.harvard.edu
 *===============================================================================
 * Program: binscatter2.ado
 * Purpose: New functionality and efficiency improvements for binscatter.
 * Author:  Michael Droste
-* Version: 0.15 (02/15/2019)
+* Version: 0.16 (02/28/2019)
 * Credits: This program was made possible due to the collective efforts of a 
 *          handful of Stata superstars, among them:
 *           - Michael Stepner, who wrote the original binscatter (with 
@@ -43,7 +43,10 @@ syntax varlist(min=2 numeric) [if] [in] [aweight fweight], ///
 	nodofile ///
 	nograph ///
 	fast ///
+	altcontrols ///
 	replace ///
+	vce(string) ///
+	robust ///
 	nofastxtile ///
 	randvar(varname numeric) ///
 	randcut(real 1) ///
@@ -239,6 +242,20 @@ if "`quantiles'"!="" {
 	}
 }
 
+
+* FOR NOW, alternative binning procedure doesn't work with controls
+* Why? I have a problem set due tomorrow and can't fix this tonight
+if "`quantiles'"!="" {
+	if wordcount("`varlist'")>2 {
+		di as error "Error: Can't use quantiles() option with more than one dependent variable."
+		exit
+	}
+	if "`by'"!="" {
+		di as error "Error: Can't use quantiles() option with by groups."
+		exit
+	}
+}
+
 *-------------------------------------------------------------------------------
 * Option parsing
 *-------------------------------------------------------------------------------
@@ -261,6 +278,15 @@ local samplesize  = r(N)
 local x_var  = word("`varlist'",-1)
 local y_vars = regexr("`varlist'"," `x_var'$","")
 local ynum   = wordcount("`y_vars'")
+
+* Parse VCE option, if specified
+if `"`vce'"' != "" {
+	my_vce_parse , vce(`vce') 
+	local vcetype    "robust"
+	local clusterby  "`r(clustervar)'"
+	if "`vcetype'"=="robust" local robust "robust"
+	if "`clusterby'"!="" local robust = ""
+}
 
 * Check number of unique byvals & create local storing byvals
 if "`by'"!="" {
@@ -293,46 +319,132 @@ preserve
 
 *-------------------------------------------------------------------------------
 * Residualize variables, if controls() or absorb() specified
-* XX check this out. Potential error in way binscatter has things coded up...
-*   Things are residualized independently here. But if we want regression analog,
-*   should residualize on joint nonmissing obs, right?
 *-------------------------------------------------------------------------------
 
-* If controls() or absorb() are specified...
-if `"`controls'`absorb'"'!="" quietly {
-	
-	* Parse absorb
-	if `"`absorb'"'!="" {
-		local absorb "absorb(`absorb')"
-	}
-	
-	* Residualize x variable
-	tempvar residvar
-	_regress `x_var' `controls' `wt', `absorb' noheader notable
-	predict `residvar' if e(sample), residuals
-	if "`addmean'"!="noaddmean" {
-		summarize `x_var' `wt' if `touse', meanonly
-		replace `residvar'=`residvar'+r(mean)
-	}
-	replace `x_var' = `residvar'
+* If doing old-school binscatter, residualizing y and x wrt controls (Frisch-Waugh logic)
 
-	* Residualize y variables
-	foreach yvar of varlist `y_vars' {
+if "`altcontrols'"=="" {
+
+	* If controls() or absorb() are specified...
+	if `"`controls'`absorb'"'!="" quietly {
+		
+		* Parse absorb
+		if `"`absorb'"'!="" {
+			local absorb "absorb(`absorb')"
+		}
+		
+		* Residualize x variable
 		tempvar residvar
-		_regress `yvar' `controls' `wt', `absorb' noheader notable
+		_regress `x_var' `controls' `wt', `absorb' noheader notable
 		predict `residvar' if e(sample), residuals
 		if "`addmean'"!="noaddmean" {
-			summarize `yvar' `wt' if `touse', meanonly
-			replace `residvar' = `residvar'+r(mean)
-		}	
-		replace `yvar' = `residvar'
-		local y_vars_r `y_vars_r' `residvar'
+			summarize `x_var' `wt' if `touse', meanonly
+			replace `residvar'=`residvar'+r(mean)
+		}
+		replace `x_var' = `residvar'
+
+		* Residualize y variables
+		foreach yvar of varlist `y_vars' {
+			tempvar residvar
+			_regress `yvar' `controls' `wt', `absorb' noheader notable
+			predict `residvar' if e(sample), residuals
+			if "`addmean'"!="noaddmean" {
+				summarize `yvar' `wt' if `touse', meanonly
+				replace `residvar' = `residvar'+r(mean)
+			}	
+			replace `yvar' = `residvar'
+			local y_vars_r `y_vars_r' `residvar'
+		}
+
 	}
 
 }
-	
+
 local x_r `x_var'
 local y_vars_r `y_vars'
+
+
+*-------------------------------------------------------------------------------
+* Generate x-bin
+*-------------------------------------------------------------------------------
+
+qui keep if ~mi(`x_r')
+qui foreach v of local y_vars_r {
+	keep if ~mi(`v')
+}
+
+* When xq is not specified...
+if "`xq'"=="" {
+	* When discrete is not specified...
+	if "`discrete'"=="" {
+		if ("`genxq'"!="") local xq `genxq'
+		else tempvar xq
+		fasterxtile `xq' = `x_r', nq(`nquantiles')	
+	}
+	* If discrete is specified...
+	if "`discrete'"!="" {
+		if ("`genxq'"!="") local xq `genxq'
+		else tempvar xq
+		gen `xq' = `x_r'
+	}
+}
+
+* When genxq is specified, save them out with temporary id's to be merged on at end
+else {
+	tempfile temp_file_1
+	save `temp_file_1'
+	keep `temp_id' `xq'
+	tempfile temp_file_2
+	save `temp_file_2'
+	use `temp_file_1'
+}
+
+* When genxq is specified, save them out with temporary id's to be merged on at end
+* XX this is inefficient and not very elegant
+if "`genxq'"!="" {
+	* Save present data as a temporary file
+	tempfile temp_file_1
+	save `temp_file_1'
+	* Keep only temp id and xq, then save as temporary file we merge on at end
+	keep `temp_id' `xq'
+	tempfile temp_file_2
+	save `temp_file_2'
+	* Load present data again
+	use `temp_file_1'
+}		
+
+*----------------------------------------------------------------------------------
+* Alternative residualization
+*----------------------------------------------------------------------------------
+* If doing alternative binning strategy...
+
+if "`altcontrols'"!="" {
+
+	* Residualize yvars
+	tempvar yhat
+	_regress `xvar' `controls' `wt', `absorb' noheader notable
+	predict `yhat'
+	foreach v in varlist `controls' {
+		noi di "Current var: `v'"
+	}
+
+	* Residualize y variables
+	local y_vars_r 
+	foreach yvar of varlist `y_vars' {
+		tempvar yhat
+		regress `yvar' i.`xq' `controls' `wt', `absorb' noheader notable
+		predict `yhat' if e(sample), xb
+		replace `yvar' = `yhat'
+		foreach v of varlist `controls' {
+			qui replace `yvar' = `yvar' - _b[`v']*`v'
+		}
+		local y_vars_r `y_vars_r' `yvar'
+	}
+
+}
+
+noi di "XX yvarsr: `y_vars_r'"
+
 
 *-------------------------------------------------------------------------------
 * Run regressions for fit lines
@@ -436,10 +548,10 @@ if inlist("`linetype'","lfit","qfit","logfit","expfit") `reg_verbosity' {
 				if _rc==0 matrix e_b_temp=e(b)
 				else if _rc==2000 {
 					if("`reg_verbosity'"=="quietly" di as error "No observations for one of the fit lines. add 'reportreg' for more info."
-					if "`linetype'"=="lfit" matrix e_b_temp = J(1,2,.)
+					if "`linetype'"=="lfit"   matrix e_b_temp = J(1,2,.)
 					if "`linetype'"=="logfit" matrix e_b_temp = J(1,2,.)
 					if "`linetype'"=="expfit" matrix e_b_temp = J(1,2,.)
-					else matrix e_b_temp=J(1,3,.)
+					else matrix e_b_temp = J(1,3,.)
 				}
 				else {
 					exit _rc
@@ -451,75 +563,41 @@ if inlist("`linetype'","lfit","qfit","logfit","expfit") `reg_verbosity' {
 				else matrix rownames e_b_temp = "="
 
 				* Save to y_var matrix
-				if (`counter_by'==1 & `counter_rd'==1) matrix `y`counter_depvar'_coefs'=e_b_temp
-				else matrix `y`counter_depvar'_coefs'=`y`counter_depvar'_coefs' \ e_b_temp
+				if `counter_by'==1 & `counter_rd'==1 {
+					matrix `y`counter_depvar'_coefs' = e_b_temp
+				}
+				else {
+					matrix `y`counter_depvar'_coefs' = `y`counter_depvar'_coefs' \ e_b_temp
+				}
 				local ++counter_depvar
 			}
 
 			* Increment counter for RDs
-			if (`counter_rd'!=1) mac shift
+			if `counter_rd'!=1 mac shift
 			local ++counter_rd
 		}
 
 		* Increment counter for by-group
 		local ++counter_by
 	}
+
+	* If ci specified, no by group, only one rd
+	if "`ci'"!="" {
+
+		predictnl  = predict(), ci(ci3 ci4)
+	}
+
 	
 	* Relabel matrix column names
 	forvalues i=1/`ynum' {
-		if ("`linetype'"=="lfit") matrix colnames `y`i'_coefs' = "`x_var'" "_cons"
-		else if ("`linetype'"=="qfit") matrix colnames `y`i'_coefs' = "`x_var'^2" "`x_var'" "_cons"
+		if "`linetype'"=="lfit" {
+			matrix colnames `y`i'_coefs' = "`x_var'" "_cons"
+		}
+		else if "`linetype'"=="qfit" {
+			matrix colnames `y`i'_coefs' = "`x_var'^2" "`x_var'" "_cons"
+		}
 	}
 }	
-
-*-------------------------------------------------------------------------------
-* Generate x-bin
-*-------------------------------------------------------------------------------
-
-qui keep if ~mi(`x_r')
-qui foreach v of local y_vars_r {
-	keep if ~mi(`v')
-}
-
-* When xq is not specified...
-if "`xq'"=="" {
-	* When discrete is not specified...
-	if "`discrete'"=="" {
-		if ("`genxq'"!="") local xq `genxq'
-		else tempvar xq
-		fasterxtile `xq' = `x_r', nq(`nquantiles')	
-	}
-	* If discrete is specified...
-	if "`discrete'"!="" {
-		if ("`genxq'"!="") local xq `genxq'
-		else tempvar xq
-		gen `xq' = `x_r'
-	}
-}
-
-* When genxq is specified, save them out with temporary id's to be merged on at end
-else {
-	tempfile temp_file_1
-	save `temp_file_1'
-	keep `temp_id' `xq'
-	tempfile temp_file_2
-	save `temp_file_2'
-	use `temp_file_1'
-}
-
-* When genxq is specified, save them out with temporary id's to be merged on at end
-* XX this is inefficient and not very elegant
-if "`genxq'"!="" {
-	* Save present data as a temporary file
-	tempfile temp_file_1
-	save `temp_file_1'
-	* Keep only temp id and xq, then save as temporary file we merge on at end
-	keep `temp_id' `xq'
-	tempfile temp_file_2
-	save `temp_file_2'
-	* Load present data again
-	use `temp_file_1'
-}
 
 *-------------------------------------------------------------------------------
 * Compute means of x and y within each bin

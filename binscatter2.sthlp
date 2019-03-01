@@ -41,6 +41,7 @@ where {varlist} is {it:y_1} [{it:y_2} [...]] {it:x}
 
 {syntab :Controls}
 {synopt :{opth control:s(varlist)}}residualize the x & y variables on controls before plotting{p_end}
+{synopt :{opth altcontrols}}Implements an alternative residualization procedure described in Cattaneo et al. (2019).{p_end}
 {synopt :{opth absorb(varname)}}residualize the x & y variables on a categorical variable{p_end}
 {synopt :{opt noa:ddmean}}do not add the mean of each variable back to its residuals{p_end}
 
@@ -176,6 +177,8 @@ To do so, {cmd:binscatter} runs an {helpb areg} of each variable with {it:absorb
 residuals and adds the sample mean of each variable back to its residuals.
 
 {phang}{opt noa:ddmean} prevents the sample mean of each variable from being added back to its residuals, when combined with {opt controls()} or {opt absorb()}.
+
+{phang}{opt altcontrols} implements an alternative procedure to control for a set of covariates, as described in Cattaneo et al. (2019).
 
 {marker fit_line}{...}
 {dlgtab:Fit Line}

@@ -35,13 +35,13 @@ In addition, binscatter2 contains a handful of additional new features intended 
 New Features
 ---------------------------------
 
-In addition to substantial performance improvements for large datasets, binscatter2 adds a few new features to binscatter. In particular:
+In addition to substantial performance improvements for large datasets (see [benchmarks](#benchmarks)), binscatter2 adds a few new features to binscatter. In particular:
 
 - [x] **Multi-way fixed effects**. If [reghdfe](https://github.com/sergiocorreia/reghdfe) is installed, multi-way fixed effects can be specified in the absorb() option.
 - [x] **Quantile intervals**. Overlay quantiles of the sample distribution on top of the means/medians within each bin, providing more information on the shape of the conditional distribution of y given x.
 - [x] **Flexible save commands**. Save scatter points out to .dta files and also choose to omit the do-file created by savedata() with the nodofile option.
 - [x] **More fit line options**. Exponential and logarithmic fits, with higher-order polynomials coming soon.
-
+- [x] **Alternative procedure to control for covariates**. Implements the suggested procedure described in [Cattaneo et al. (2019)](https://sites.google.com/site/nppackages/binsreg/Cattaneo-Crump-Farrell-Feng_2019_Binscatter.pdf) to control for covariates without residualizing y and x. 
 
 ![binscatter2 demo](benchmarks/ex.png "binscatter2 demo")
 
@@ -70,7 +70,7 @@ Complete internal documentation is provided with the installation and can be acc
 help binscatter2
 ````
 
-Basic usage of binscatter2 is identical to binscatter and should be familiar to any users of the original package.
+The basic syntax and usage of binscatter2 is inherited from binscatter and should be familiar to existing users of that program.
 
 This repository includes a do-file, check.do, that provides a number of checks to verify the functionality of each option within binscatter2 and demonstrates equivalence to binscatter for options shared by both programs. The file check_speed.do runs Monte Carlo simulations that were used in the benchmark section of this readme.
 
@@ -88,13 +88,11 @@ Todo
 
 The following items will be addressed soon:
 
-- [ ] Finish benchmarking section of this readme
-- [ ] Include a few usage pictures
-- [ ] Allow for higher-order polynomial fit lines
-- [ ] Arbitrary quantile dots (i.e. not just mean, median)
+- [ ] Fix higher-order polynomial fit lines
 - [ ] Fix reghdfe support
 - [ ] Save out quantile intervals when using savedata() option
 - [ ] More aesthetic options on quantiles() option
+- [ ] Comparison against binsreg
 
 
 Acknowledgements

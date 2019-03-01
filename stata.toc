@@ -1,4 +1,4 @@
 
-v 0.15
+v 0.16
 d Michael Droste, mdroste@fas.harvard.edu
 p 'binscatter2': faster binned scatterplots in Stata
