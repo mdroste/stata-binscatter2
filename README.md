@@ -41,7 +41,7 @@ In addition to substantial performance improvements for large datasets (see [ben
 - [x] **Quantile intervals**. Overlay quantiles of the sample distribution on top of the means/medians within each bin, providing more information on the shape of the conditional distribution of y given x.
 - [x] **Flexible save commands**. Save scatter points out to .dta files and also choose to omit the do-file created by savedata() with the nodofile option.
 - [x] **More fit line options**. Exponential and logarithmic fits, with higher-order polynomials coming soon.
-- [x] **Alternative procedure to control for covariates**. Implements the suggested procedure described in [Cattaneo et al. (2019)](https://sites.google.com/site/nppackages/binsreg/Cattaneo-Crump-Farrell-Feng_2019_Binscatter.pdf) to control for covariates without residualizing y and x. 
+- [x] **Alternative covariate adjustment procedure**. Implements the suggested procedure described in [Cattaneo et al. (2019)](https://sites.google.com/site/nppackages/binsreg/Cattaneo-Crump-Farrell-Feng_2019_Binscatter.pdf) to control for covariates without residualizing y and x with respect to a vector of controls/fixed effects with the new option altcontrols. 
 
 ![binscatter2 demo](benchmarks/ex.png "binscatter2 demo")
 
