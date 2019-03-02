@@ -260,6 +260,9 @@ if "`quantiles'"!="" {
 * Option parsing
 *-------------------------------------------------------------------------------
 
+* Preserve dataset before we drop and collapse stuff
+preserve
+
 * Create convenient weight local
 if ("`weight'"!="") local wt [`weight'`exp']
 
@@ -313,9 +316,6 @@ if "`genxq'"!="" {
 	tempvar temp_id
 	gen `temp_id' = _n
 }
-
-* Preserve dataset before we drop and collapse stuff
-preserve
 
 *-------------------------------------------------------------------------------
 * Residualize variables, if controls() or absorb() specified
