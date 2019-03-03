@@ -260,15 +260,15 @@ if "`quantiles'"!="" {
 * Option parsing
 *-------------------------------------------------------------------------------
 
-* Preserve dataset before we drop and collapse stuff
-preserve
-
 * Create convenient weight local
 if ("`weight'"!="") local wt [`weight'`exp']
 
 * Mark sample (reflects the if/in conditions, and includes only nonmissing observations)
 marksample touse
 markout `touse' `by' `xq' `controls' `absorb', strok
+
+* Preserve dataset before we drop and collapse stuff
+preserve
 
 * Try to speed things up
 qui keep if `touse'
