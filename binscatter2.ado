@@ -321,32 +321,37 @@ if "`genxq'"!="" {
 * Residualize variables, if controls() or absorb() specified
 *-------------------------------------------------------------------------------
 
-* If doing old-school binscatter, residualizing y and x wrt controls (Frisch-Waugh logic)
+* Parse absorb and regress type
+if `"`absorb'"'!="" {
+	local absorb "absorb(`absorb')"
+	local regtype "areg"
+}
+if `"`absorb'"'=="" {
+	local regtype "_regress"
+	local regopts "noheader notable"
+}
 
+* If doing old-school binscatter, residualizing y and x wrt controls (Frisch-Waugh logic)
 if "`altcontrols'"=="" {
 
 	* If controls() or absorb() are specified...
 	if `"`controls'`absorb'"'!="" quietly {
-		
-		* Parse absorb
-		if `"`absorb'"'!="" {
-			local absorb "absorb(`absorb')"
-		}
-		
+
 		* Residualize x variable
 		tempvar residvar
-		_regress `x_var' `controls' `wt', `absorb' noheader notable
+		`regtype' `x_var' `controls' `wt', `absorb' `regopts'
 		predict `residvar' if e(sample), residuals
 		if "`addmean'"!="noaddmean" {
 			summarize `x_var' `wt' if `touse', meanonly
 			replace `residvar'=`residvar'+r(mean)
 		}
 		replace `x_var' = `residvar'
+		local x_r `x_var'
 
 		* Residualize y variables
 		foreach yvar of varlist `y_vars' {
 			tempvar residvar
-			_regress `yvar' `controls' `wt', `absorb' noheader notable
+			`regtype' `yvar' `controls' `wt', `absorb' `regopts'
 			predict `residvar' if e(sample), residuals
 			if "`addmean'"!="noaddmean" {
 				summarize `yvar' `wt' if `touse', meanonly
@@ -362,7 +367,6 @@ if "`altcontrols'"=="" {
 
 local x_r `x_var'
 local y_vars_r `y_vars'
-
 
 *-------------------------------------------------------------------------------
 * Generate x-bin
@@ -389,7 +393,7 @@ if "`xq'"=="" {
 	}
 }
 
-* When genxq is specified, save them out with temporary id's to be merged on at end
+* When xq is specified, save them out with temporary id's to be merged on at end
 else {
 	tempfile temp_file_1
 	save `temp_file_1'
@@ -416,6 +420,7 @@ if "`genxq'"!="" {
 *----------------------------------------------------------------------------------
 * Alternative residualization
 *----------------------------------------------------------------------------------
+
 * If doing alternative binning strategy...
 
 if "`altcontrols'"!="" {
@@ -424,7 +429,7 @@ if "`altcontrols'"!="" {
 	local y_vars_r 
 	qui foreach yvar of varlist `y_vars' {
 		tempvar yhat
-		regress `yvar' i.`xq' `controls' `wt', `absorb' noheader notable
+		`regtype' `yvar' i.`xq' `controls' `wt', `absorb' `regopts'
 		predict `yhat' if e(sample), xb
 		replace `yvar' = `yhat'
 		foreach v of varlist `controls' {

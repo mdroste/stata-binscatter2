@@ -1,8 +1,8 @@
-v 0.17
+v 0.18
 d
-d 'binscatter2': fast and flexible grouped regressions
+d 'binscatter2': faster binned scatterplots in Stata
 d
-d Distribution-Date: 20190302
+d Distribution-Date: 20190522
 d
 f binscatter2.ado
 f binscatter2.sthlp

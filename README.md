@@ -13,7 +13,7 @@ binscatter2
 
 Faster binned scatterplots in Stata with a few new bells and whistles
 
-`version 0.17 2mar2019`
+`version 0.18 22may2019`
 
 
 Overview
@@ -100,7 +100,7 @@ The following items will be addressed soon:
 Acknowledgements
 ---------------------------------
 
-As the name suggests, this program builds extensively on the indispenseable binscatter package, developed by the illustrious [Michael Stepner](https://github.com/michaelstepner) and Jessica Laird. 
+Binscatter2 builds extensively on [binscatter](https://github.com/michaelstepner/binscatter) , developed by the illustrious [Michael Stepner](https://github.com/michaelstepner) and Jessica Laird. 
 
 In addition, binscatter2 would certainly not have been possible without [gtools](https://github.com/mcaceresb/stata-gtools) by Mauricio Caceres Bravo, which in turn would not have happened without [ftools](https://github.com/sergiocorreia/ftools), developed by Sergio Correa.
 
