@@ -40,6 +40,7 @@ syntax varlist(min=2 numeric) [if] [in] [aweight fweight], ///
 	savegraph(string) ////
 	savedata(string) ///
 	quantiles(numlist integer ascending) ///
+	stdevs(integer -1) ///
 	nodofile ///
 	nograph ///
 	fast ///
@@ -240,6 +241,12 @@ if "`quantiles'"!="" {
 		di as error "Error: Can't use quantiles() option with by groups."
 		exit
 	}
+}
+
+* Specify either quantiles OR stdevs, not both
+if "`quantiles'"!="" & `stdevs'!=-1 {
+	di as error "Error: can't specify both stdevs() and quantiles(), choose one."
+	exit
 }
 
 
@@ -614,6 +621,12 @@ if "`quantiles'"!="" {
 	local quantile_vars p`q1' p`q2'
 }
 
+* If stdevs specified: define macro to pass into gcollapse
+if `stdevs'!=-1 {
+	tempvar sd
+	local quantiles_opt "(sd) `sd' =`y_vars_r'"
+}
+
 *---------------------------------------------------
 * Handle case with no by-groups
 *---------------------------------------------------
@@ -637,6 +650,15 @@ if "`by'"=="" {
 	if "`quantiles'"!="" {
 		if `c(stata_version)' >= 15.0 local opacity %40
 		local quantile_macro (rarea p`q2' p`q1' `x_r', color(gs12`opacity'))
+	}
+
+	* If stdevs specified
+	if `stdevs'>-1 {
+		if `c(stata_version)' >= 15.0 local opacity %40
+		tempvar sd_ub sd_lb
+		gen `sd_ub' = `y_vars_r' + `stdevs'*`sd'
+		gen `sd_lb' = `y_vars_r' - `stdevs'*`sd'
+		local quantile_macro (rarea `sd_ub' `sd_lb' `x_r', color(gs12`opacity'))
 	}
 
 }

@@ -12,27 +12,29 @@ cls
 * Setup options
 *-------------------------------------------------------------------------------
 
-local num_sims 3
-local num_bins 100
+local num_sims 5
+local num_bins 20
 
 local sim_1_size 1000000
-local sim_1_reps 15
+local sim_1_reps 25
 
 local sim_2_size 10000000
-local sim_2_reps 5
+local sim_2_reps 10
 
 local sim_3_size 25000000
-local sim_3_reps 5
+local sim_3_reps 3
 
 local sim_4_size 50000000
-local sim_4_reps 5
+local sim_4_reps 3
 
 local sim_5_size 100000000
-local sim_5_reps 5
+local sim_5_reps 1
 
 *-------------------------------------------------------------------------------
 * Initialization
 *-------------------------------------------------------------------------------
+
+quietly {
 
 * Cheap fix: define `sizes' and `num_sims'
 local max_reps 0
@@ -72,15 +74,15 @@ forval i=1/`num_sims' {
 		gen x = runiform()
 		gen y = 1 + 2*x + 3*x^2 + 4*x^3 + rnormal()*5*x
 		
-		* Test binscatter
+		* Test binscatter2
 		timer on 1
-		qui binscatter y x, nq(`num_bins')
+		qui binsreg y x, nbins(`num_bins') polyreg(1)
 		timer off 1
 		
 		
-		* Test binscatter2
+		* Test binsreg
 		timer on 2
-		qui binscatter2 y x, nq(`num_bins')
+		qui binscatter2 y x, nbins(`num_bins')
 		timer off 2
 		
 		* Save results
@@ -101,10 +103,13 @@ svmat results_new
 * Results analysis
 *-------------------------------------------------------------------------------
 
+noi di "Results for simulations" 
+
 * List output
 forval i=1/`num_sims' {
 	gen ratio`i' = results_old`i' / results_new`i'
-	*histogram ratio`i', name(fig`i', replace)
+	histogram ratio`i', name(fig`i', replace)
+	sum ratio`i', d
 }
 
-sum ratio*, d
+}
