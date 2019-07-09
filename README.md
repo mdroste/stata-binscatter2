@@ -13,7 +13,7 @@ binscatter2
 
 Faster binned scatterplots in Stata with a few new bells and whistles
 
-`version 0.18 22may2019`
+`version 0.19 09jul2019`
 
 
 Overview

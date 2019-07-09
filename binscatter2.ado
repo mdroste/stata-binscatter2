@@ -1,9 +1,9 @@
-*! binscatter2, v0.16 (28feb2019), Michael Droste, mdroste@fas.harvard.edu
+*! binscatter2, v0.19 (09jul2019), Michael Droste, mdroste@fas.harvard.edu
 *===============================================================================
 * Program: binscatter2.ado
 * Purpose: New functionality and efficiency improvements for binscatter.
 * Author:  Michael Droste
-* Version: 0.16 (02/28/2019)
+* Version: 0.19 (07/09/2019)
 * Credits: This program was made possible due to the collective efforts of a 
 *          handful of Stata superstars, among them:
 *           - Michael Stepner, who wrote the original binscatter (with 
