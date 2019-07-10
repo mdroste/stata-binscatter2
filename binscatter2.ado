@@ -1,9 +1,9 @@
-*! binscatter2, v0.19 (09jul2019), Michael Droste, mdroste@fas.harvard.edu
+*! binscatter2, v0.20 (10jul2019), Michael Droste, mdroste@fas.harvard.edu
 *===============================================================================
 * Program: binscatter2.ado
 * Purpose: New functionality and efficiency improvements for binscatter.
 * Author:  Michael Droste
-* Version: 0.19 (07/09/2019)
+* Version: 0.20 (07/10/2019)
 * Credits: This program was made possible due to the collective efforts of a 
 *          handful of Stata superstars, among them:
 *           - Michael Stepner, who wrote the original binscatter (with 
@@ -28,7 +28,7 @@ syntax varlist(min=2 numeric) [if] [in] [aweight fweight], ///
 	xq(varname numeric) ///
 	MEDians ///
 	CONTROLs(varlist numeric ts fv) ///
-	Absorb(varname) ///
+	Absorb(varlist) ///
 	noAddmean ///
 	LINEtype(string) ///
 	rd(numlist ascending) ///
@@ -68,7 +68,7 @@ cap which gcollapse
 local a2 = _rc
 if `a1'!=0 | `a2'!=0 {
 	di as error "Error: Must have gtools installed to use binscatter2"
-	di as error " See the Github page: https://github.com/mcaceresb/stata-gtools"
+	di as error " See the gtools github repo: https://github.com/mcaceresb/stata-gtools"
 	exit
 }
 
@@ -324,19 +324,34 @@ if "`genxq'"!="" {
 	gen `temp_id' = _n
 }
 
-*-------------------------------------------------------------------------------
-* Residualize variables, if controls() or absorb() specified
-*-------------------------------------------------------------------------------
-
 * Parse absorb and regress type
 if `"`absorb'"'!="" {
+	local num_fes = 0
+	foreach v of varlist `absorb' {
+		local num_fes = `num_fes' + 1
+	}
+	noi di "Num fes: `num_fes'"
 	local absorb "absorb(`absorb')"
 	local regtype "areg"
+	if `num_fes' > 1 {
+		local regtype "reghdfe"
+		cap which reghdfe
+		if _rc>0 {
+			di as error "Error: You specified more than 1 fixed effect in absorb(), but don't have reghdfe installed."
+			di as error "Please install the reghdfe package from SSC or GitHub to absorb multi-way fixed effects."
+			exit
+		}
+	}
 }
 if `"`absorb'"'=="" {
 	local regtype "_regress"
 	local regopts "noheader notable"
 }
+
+*-------------------------------------------------------------------------------
+* Residualize variables, if controls() or absorb() specified
+*-------------------------------------------------------------------------------
+
 
 * If doing old-school binscatter, residualizing y and x wrt controls (Frisch-Waugh logic)
 if "`altcontrols'"=="" {
@@ -346,8 +361,13 @@ if "`altcontrols'"=="" {
 
 		* Residualize x variable
 		tempvar residvar
-		`regtype' `x_var' `controls' `wt', `absorb' `regopts'
-		predict `residvar' if e(sample), residuals
+		if "`regtype'"=="reghdfe" {
+			`regtype' `x_var' `controls' `wt', `absorb' `regopts' resid(`residvar')
+		}
+		else {
+			`regtype' `x_var' `controls' `wt', `absorb' `regopts'
+			predict `residvar' if e(sample), residuals
+		}
 		if "`addmean'"!="noaddmean" {
 			summarize `x_var' `wt' if `touse', meanonly
 			replace `residvar'=`residvar'+r(mean)
@@ -358,8 +378,13 @@ if "`altcontrols'"=="" {
 		* Residualize y variables
 		foreach yvar of varlist `y_vars' {
 			tempvar residvar
-			`regtype' `yvar' `controls' `wt', `absorb' `regopts'
-			predict `residvar' if e(sample), residuals
+			if "`regtype'"=="reghdfe" {
+				`regtype' `yvar' `controls' `wt', `absorb' `regopts' resid(`residvar')
+			}
+			else {
+				`regtype' `yvar' `controls' `wt', `absorb' `regopts'
+				predict `residvar' if e(sample), residuals
+			}
 			if "`addmean'"!="noaddmean" {
 				summarize `yvar' `wt' if `touse', meanonly
 				replace `residvar' = `residvar'+r(mean)
@@ -429,7 +454,6 @@ if "`genxq'"!="" {
 *----------------------------------------------------------------------------------
 
 * If doing alternative binning strategy...
-
 if "`altcontrols'"!="" {
 
 	* Residualize y variables
@@ -439,8 +463,10 @@ if "`altcontrols'"!="" {
 		`regtype' `yvar' i.`xq' `controls' `wt', `absorb' `regopts'
 		predict `yhat' if e(sample), xb
 		replace `yvar' = `yhat'
-		foreach v of varlist `controls' {
-			qui replace `yvar' = `yvar' - _b[`v']*`v'
+		if "`controls'"!="" {}
+			foreach v of varlist `controls' {
+				qui replace `yvar' = `yvar' - _b[`v']*`v'
+			}
 		}
 		local y_vars_r `y_vars_r' `yvar'
 	}
