@@ -13,7 +13,7 @@ binscatter2
 
 Faster binned scatterplots in Stata with a few new bells and whistles
 
-`version 0.19 09jul2019`
+`version 0.20 10jul2019`
 
 
 Overview
@@ -38,7 +38,7 @@ New Features
 In addition to substantial performance improvements for large datasets (see [benchmarks](#benchmarks)), binscatter2 adds a few new features to binscatter. In particular:
 
 - [x] **Multi-way fixed effects**. If [reghdfe](https://github.com/sergiocorreia/reghdfe) is installed, multi-way fixed effects can be specified in the absorb() option.
-- [x] **Quantile intervals**. Overlay quantiles of the sample distribution on top of the means/medians within each bin, providing more information on the shape of the conditional distribution of y given x.
+- [x] **Visualize conditional variance and quantiles**. Overlay quantiles of the sample distribution on top of the means/medians within each bin, providing more information on the shape of the conditional distribution of y given x.
 - [x] **Flexible save commands**. Save scatter points out to .dta files and also choose to omit the do-file created by savedata() with the nodofile option.
 - [x] **More fit line options**. Exponential and logarithmic fits, with higher-order polynomials coming soon.
 - [x] **Alternative covariate adjustment procedure**. Implements the suggested procedure described in [Cattaneo et al. (2019)](https://sites.google.com/site/nppackages/binsreg/Cattaneo-Crump-Farrell-Feng_2019_Binscatter.pdf) to control for covariates without residualizing y and x with respect to a vector of controls/fixed effects with the new option altcontrols. 
@@ -91,7 +91,6 @@ Todo
 The following items will be addressed soon:
 
 - [ ] Fix higher-order polynomial fit lines
-- [ ] Fix reghdfe support
 - [ ] Save out quantile intervals when using savedata() option
 - [ ] More aesthetic options on quantiles() option
 - [ ] Comparison against binsreg
