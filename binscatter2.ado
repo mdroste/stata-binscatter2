@@ -1,9 +1,9 @@
-*! binscatter2, v0.20 (10jul2019), Michael Droste, mdroste@fas.harvard.edu
+*! binscatter2, v0.22 (29jul2019), Michael Droste, mdroste@fas.harvard.edu
 *===============================================================================
 * Program: binscatter2.ado
 * Purpose: New functionality and efficiency improvements for binscatter.
 * Author:  Michael Droste
-* Version: 0.20 (07/10/2019)
+* Version: 0.22 (07/29/2019)
 * Credits: This program was made possible due to the collective efforts of a 
 *          handful of Stata superstars, among them:
 *           - Michael Stepner, who wrote the original binscatter (with 
@@ -390,6 +390,8 @@ if "`altcontrols'"=="" {
 				replace `residvar' = `residvar'+r(mean)
 			}	
 			replace `yvar' = `residvar'
+			noi di "y_vars_r: `y_vars_r'"
+			noi di "residvar: `residvar'"
 			local y_vars_r `y_vars_r' `residvar'
 		}
 
@@ -463,7 +465,7 @@ if "`altcontrols'"!="" {
 		`regtype' `yvar' i.`xq' `controls' `wt', `absorb' `regopts'
 		predict `yhat' if e(sample), xb
 		replace `yvar' = `yhat'
-		if "`controls'"!="" {}
+		if "`controls'"!="" {
 			foreach v of varlist `controls' {
 				qui replace `yvar' = `yvar' - _b[`v']*`v'
 			}
