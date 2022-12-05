@@ -1,8 +1,8 @@
-v 0.22
+v 0.24
 d
 d 'binscatter2': faster, expanded binned scatterplots in Stata
 d
-d Distribution-Date: 20190729
+d Distribution-Date: 20221204
 d
 f binscatter2.ado
 f binscatter2.sthlp

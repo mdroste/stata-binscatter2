@@ -33,18 +33,19 @@ syntax varlist(min=2 numeric) [if] [in] [aweight fweight], ///
 	LINEtype(string) ///
 	rd(numlist ascending) ///
 	reportreg ///
+	noplot nograph ///
 	COLors(string asis) ///
 	MColors(string asis) ///
 	LColors(string asis) ///
 	Msymbols(string) ///
-	savegraph(string) ////
+	savegraph(string) ///
 	savedata(string) ///
 	quantiles(numlist integer ascending) ///
 	stdevs(integer -1) ///
 	nodofile ///
-	nograph ///
 	fast ///
 	altcontrols ///
+	plotraw /// 
 	replace ///
 	vce(string) ///
 	robust ///
@@ -53,7 +54,7 @@ syntax varlist(min=2 numeric) [if] [in] [aweight fweight], ///
 	randcut(real 1) ///
 	randn(integer -1) ///
 	/* LEGACY OPTIONS */ nbins(integer 20) create_xq x_q(varname numeric) symbols(string) method(string) unique(string) ///
-	*]
+]
 
 set more off
 	
@@ -210,10 +211,11 @@ if "`replace'"=="" {
 	}
 }
 
-* No display: Make sure that nograph only used if savedata is specified
-if "`nograph'"!="" & "`savedata'"!="" {
-	di as error "Error: Cannot use nograph option without the savedata option."
-	exit 
+* No display: Make sure that noplot only used if savedata is specified
+if "`noplot'"!="" & "`savedata'"=="" {
+	di "Warning: Doesn't make sense to use noplot option without savedata."
+	di "Ignoring noplot (drawing binscatter)."
+	local noplot
 }
 
 * Make sure quantiles are between 0 and 100, and there arent more than 2
@@ -274,6 +276,12 @@ if ("`weight'"!="") local wt [`weight'`exp']
 marksample touse
 markout `touse' `by' `xq' `controls' `absorb', strok
 
+* Create a temporary ID for later merges
+if "`genxq'"!="" {
+	tempvar temp_id
+	gen `temp_id' = _n
+}
+
 * Preserve dataset before we drop and collapse stuff
 preserve
 
@@ -317,12 +325,6 @@ if "`by'"!="" {
 	}
 }
 else local bynum = 1
-
-* Create a temporary ID for later merges
-if "`genxq'"!="" {
-	tempvar temp_id
-	gen `temp_id' = _n
-}
 
 * Parse absorb and regress type
 if `"`absorb'"'!="" {
@@ -411,6 +413,17 @@ qui foreach v of local y_vars_r {
 	keep if ~mi(`v')
 }
 
+* When xq is specified, save them out with temporary id's to be merged on at end
+if "`xq'"!="" {
+	noi di "test1"
+	tempfile temp_file_1
+	save `temp_file_1'
+	keep `temp_id' `xq'
+	tempfile temp_file_2
+	save `temp_file_2'
+	use `temp_file_1'
+}
+
 * When xq is not specified...
 if "`xq'"=="" {
 	* When discrete is not specified...
@@ -427,28 +440,19 @@ if "`xq'"=="" {
 	}
 }
 
-* When xq is specified, save them out with temporary id's to be merged on at end
-else {
-	tempfile temp_file_1
-	save `temp_file_1'
-	keep `temp_id' `xq'
-	tempfile temp_file_2
-	save `temp_file_2'
-	use `temp_file_1'
-}
 
 * When genxq is specified, save them out with temporary id's to be merged on at end
 * XX this is inefficient and not very elegant
 if "`genxq'"!="" {
 	* Save present data as a temporary file
 	tempfile temp_file_1
-	save `temp_file_1'
+	qui save `temp_file_1'
 	* Keep only temp id and xq, then save as temporary file we merge on at end
 	keep `temp_id' `xq'
 	tempfile temp_file_2
-	save `temp_file_2'
+	qui save `temp_file_2'
 	* Load present data again
-	use `temp_file_1'
+	qui use `temp_file_1'
 }		
 
 *----------------------------------------------------------------------------------
@@ -932,17 +936,36 @@ if inlist(`"`linetype'"',"lfit","qfit","logfit","expfit") {
 * Display graph
 *-------------------------------------------------------------------------------
 
-* Only display graph if nograph option was not specified
-if "`nograph'"=="" {
+* Only display graph if noplot option was not specified
+if "`noplot'"=="" {
 
 	* Prepare y-axis title
 	if (`ynum'==1) local ytitle `y_vars'
 	else if (`ynum'==2) local ytitle : subinstr local y_vars " " " and "
 	else local ytitle : subinstr local y_vars " " "; ", all
 
+	* If plotraw option used: plot individual data points
+	if "`plotraw'"!="" {
+
+		* XX check to make sure only 1 dv used: otherwise, doesn't work
+		local num_yvars = 0
+		foreach v in `y_vars_r' {
+			local num_yvars = `num_yvars'+1
+		}
+		if `num_yvars'>1 {
+			di as error "Error: Cannot use plotraw option with more than one dependent variable."
+			exit 1
+		}
+
+		* Create scatter
+		local underlying_data_scatter (scatter `y_vars_r' `x_r', mc(gs11%50) msize(vsmall))
+		list `y_vars_r' `x_r'
+	}
+
 	* Display graph
-	local graphcmd twoway `quantile_macro' `scatters' `fits', graphregion(fcolor(white)) `xlines' xtitle(`x_var') ytitle(`ytitle') legend(`legend_labels' order(`order')) `options'
-	if "`savedata'"!="" local savedata_graphcmd twoway `quantile_macro' `savedata_scatters' `fits', graphregion(fcolor(white)) `xlines' xtitle(`x_var') ytitle(`ytitle') legend(`legend_labels' order(`order')) `options'
+	local graphcmd twoway `quantile_macro' `scatters' `fits' `underlying_data_scatter' , graphregion(fcolor(white)) `xlines' xtitle(`x_var') ytitle(`ytitle') legend(`legend_labels' order(`order')) `options'
+	if "`savedata'"!="" local savedata_graphcmd twoway `quantile_macro' `savedata_scatters' `fits' `underlying_data_scatter', graphregion(fcolor(white)) `xlines' xtitle(`x_var') ytitle(`ytitle') legend(`legend_labels' order(`order')) `options'
+	
 	`graphcmd'
 
 }
