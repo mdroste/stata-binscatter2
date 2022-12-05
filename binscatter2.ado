@@ -1,4 +1,4 @@
-*! binscatter2, v0.23 (4dec2022), Michael Droste, mdroste@fas.harvard.edu
+*! binscatter2, v0.25 (4dec2022), Michael Droste, mdroste@fas.harvard.edu
 *===============================================================================
 * Program: binscatter2.ado
 * Purpose: New functionality and efficiency improvements for binscatter.
@@ -417,11 +417,11 @@ qui foreach v of local y_vars_r {
 if "`xq'"!="" {
 	noi di "test1"
 	tempfile temp_file_1
-	save `temp_file_1'
+	save "`temp_file_1'"
 	keep `temp_id' `xq'
 	tempfile temp_file_2
-	save `temp_file_2'
-	use `temp_file_1'
+	save "`temp_file_2'"
+	use "`temp_file_1'"
 }
 
 * When xq is not specified...
@@ -446,13 +446,13 @@ if "`xq'"=="" {
 if "`genxq'"!="" {
 	* Save present data as a temporary file
 	tempfile temp_file_1
-	qui save `temp_file_1'
+	qui save "`temp_file_1'"
 	* Keep only temp id and xq, then save as temporary file we merge on at end
 	keep `temp_id' `xq'
 	tempfile temp_file_2
-	qui save `temp_file_2'
+	qui save "`temp_file_2'"
 	* Load present data again
-	qui use `temp_file_1'
+	qui use "`temp_file_1'"
 }		
 
 *----------------------------------------------------------------------------------
@@ -704,7 +704,7 @@ if "`by'"!="" {
 
 	* Preserve initial dataset
 	tempfile t1
-	qui save `t1'
+	qui save "`t1'"
 
 	* Start a counter of by groups
 	local by_counter = 0
@@ -733,7 +733,7 @@ if "`by'"!="" {
 		}
 
 		* Restore original dataset for next by group
-		use `t1', clear
+		use "`t1'", clear
 	}
 
 	* Concatenate by-group matrices
