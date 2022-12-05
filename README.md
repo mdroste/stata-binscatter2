@@ -13,7 +13,7 @@ binscatter2
 
 Faster binned scatterplots in Stata with a few new bells and whistles
 
-`version 0.22 29jul2019`
+`version 0.23 04dec2022`
 
 
 Overview
@@ -90,7 +90,6 @@ Todo
 
 The following items will be addressed soon:
 
-- [ ] Fix higher-order polynomial fit lines
 - [ ] Save out quantile intervals when using savedata() option
 - [ ] More aesthetic options on quantiles() option
 - [ ] Comparison against binsreg

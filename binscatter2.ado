@@ -1,9 +1,9 @@
-*! binscatter2, v0.22 (29jul2019), Michael Droste, mdroste@fas.harvard.edu
+*! binscatter2, v0.23 (4dec2022), Michael Droste, mdroste@fas.harvard.edu
 *===============================================================================
 * Program: binscatter2.ado
 * Purpose: New functionality and efficiency improvements for binscatter.
 * Author:  Michael Droste
-* Version: 0.22 (07/29/2019)
+* Version: 0.23 (12/04/2022)
 * Credits: This program was made possible due to the collective efforts of a 
 *          handful of Stata superstars, among them:
 *           - Michael Stepner, who wrote the original binscatter (with 
@@ -567,7 +567,7 @@ if inlist("`linetype'","lfit","qfit","logfit","expfit") `reg_verbosity' {
 
 				* Perform regressions
 				if "`reg_verbosity'"=="quietly" {
-					capture reg `depvar' `x_r2' `x_r' `wt' if `conds', noheader notable
+					capture reg `depvar' `regressor_list' `wt' if `conds', noheader notable
 				}
 				else {
 					capture noisily reg `depvar' `regressor_list' `wt' if `conds'
