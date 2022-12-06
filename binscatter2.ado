@@ -1,4 +1,4 @@
-*! binscatter2, v0.25 (4dec2022), Michael Droste, mdroste@fas.harvard.edu
+*! binscatter2, v0.990 (05dec2022), Michael Droste, mdroste@fas.harvard.edu
 *===============================================================================
 * Program: binscatter2.ado
 * Purpose: New functionality and efficiency improvements for binscatter.
@@ -736,12 +736,47 @@ if "`by'"!="" {
 		use "`t1'", clear
 	}
 
+	* Concatenate by-group matrices OLD ORIGINAL
+	/*
+	forval i=1/$counter_depvar {
+		mat `y`i'_scatterpts' = temp1_`i'
+		if `by_counter'>1 {
+			forval j=2/`by_counter' {
+				mat list `y`i'_scatterpts'
+				mat list temp`j'_`i'
+				* Fix for concatenation error: need to see if mats are mismatched
+				mat `y`i'_scatterpts' = `y`i'_scatterpts',temp`j'_`i'
+			}
+		}
+	}
+	*/
+
 	* Concatenate by-group matrices
 	forval i=1/$counter_depvar {
 		mat `y`i'_scatterpts' = temp1_`i'
 		if `by_counter'>1 {
 			forval j=2/`by_counter' {
-				mat `y`i'_scatterpts' = `y`i'_scatterpts',temp`j'_`i'
+				* Fix for concatenation error: need to see if mats are mismatched
+				local rows_1 = rowsof(`y`i'_scatterpts')
+				local cols_1 = colsof(`y`i'_scatterpts')
+				local rows_2 = rowsof(temp`j'_`i')
+				local diffrows = `rows_1' - `rows_2'
+				* If # rows in current results matches # rows in current by group, just concatenate
+				if `rows_1'==`rows_2' {
+					mat `y`i'_scatterpts' = `y`i'_scatterpts',temp`j'_`i'
+				}
+				* If current by group has fewer rows than mat, append current by group with empty rows
+				if `rows_2' < `rows_1' {
+					mat temp = J(`diffrows',2,.)
+					mat temp`j'_`i' = temp`j'_`i' \ temp
+					mat `y`i'_scatterpts' = `y`i'_scatterpts',temp`j'_`i'
+				}
+				* If current by group has more rows than amt, append mat with empty rows
+				if `rows_2' > `rows_1' {
+					mat temp = J(`=`rows_2'-`rows_1'',`cols_1',.)
+					mat `y`i'_scatterpts' = `y`i'_scatterpts' \ temp
+					mat `y`i'_scatterpts' = `y`i'_scatterpts',temp`j'_`i'
+				}
 			}
 		}
 	}
