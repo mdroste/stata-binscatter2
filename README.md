@@ -19,16 +19,9 @@ Faster binned scatterplots in Stata with a few new bells and whistles
 Overview
 ---------------------------------
 
-binscatter2 is a program for producing binned scatterplots in Stata. It inherits the syntax and functionality of the excellent [binscatter](https://github.com/michaelstepner/binscatter) package, but runs substantially faster for big datasets (see [benchmarks](#benchmarks)). In addition, binscatter2 offers a handful of new features: the ability to overlay additional information about the conditional probability distribution (e.g. quantile intervals), an alternative procedure to adjust for controls suggested by [Cattaneo et al. (2019)](https://sites.google.com/site/nppackages/binsreg/Cattaneo-Crump-Farrell-Feng_2019_Binscatter.pdf), additional options for fit lines and saving, and multi-way fixed effects.
+binscatter2 is a program for producing binned scatterplots in Stata. It inherits the syntax and functionality of the excellent [binscatter](https://github.com/michaelstepner/binscatter) package, but runs substantially faster for big datasets (see [benchmarks](#benchmarks)). In practice, binscatter2 runs approximately 3 to 4 times faster than binscatter, and 2 to 3 times faster than binsreg.
 
-Motivation
----------------------------------
-
-Binned scatterplots are a convenient, non-parametric method to visualize conditional expectation functions. They are useful for examining the relationship between variables, possibly conditional on a set of covariates and/or fixed effects. Michael Stepner has provided a wonderful slide deck describing binned scatterplots on his website, available [here](https://michaelstepner.com/binscatter/binscatter-StataConference2014.pdf). 
-
-Anyone who has used binscatter on a large dataset can appreciate that it takes a while to run. The original binscatter program is extremely well-written and was very efficient when it was written; however, recent improvements made possible by the Stata program [gtools](https://github.com/mcaceresb/stata-gtools) have allowed several of the operations underlying binscatter to be accomplished much more efficiently, as demonstrated in the [benchmarks](#benchmarks) below. When working with data involving tens or hundreds of millions of observations, binscatter2 runs between three and eight times faster than binscatter, with the largest relative performance gains on very large datasets.
-
-In addition, binscatter2 contains a handful of additional new features intended to enhance the functionality of binscatter. For one, binscatter now allows quantile intervals to be overlaid on top of the graph. This allows the user to gauge variation in the conditional distribution of y given x.
+In addition, binscatter2 offers a handful of new features relative to the binscatter. Binscatter2 allows users to plot additional information about the conditional probability distribution of y given x (e.g. quantile intervals), an alternative procedure to adjust for covariates suggested by [Cattaneo et al. (2022)](https://nppackages.github.io/references/Cattaneo-Crump-Farrell-Feng_2022_Binscatter.pdf), additional options for fit lines and saving, and multi-way fixed effects.
 
 
 
@@ -102,7 +95,7 @@ Binscatter2 builds extensively on [binscatter](https://github.com/michaelstepner
 
 In addition, binscatter2 would certainly not have been possible without [gtools](https://github.com/mcaceresb/stata-gtools) by Mauricio Caceres Bravo, which in turn would not have happened without [ftools](https://github.com/sergiocorreia/ftools), developed by Sergio Correa.
 
-The alternative covariate adjustment procedure (enabled with the option altcontrols) was formalized by [Cattaneo et al. (2019)](https://sites.google.com/site/nppackages/binsreg/Cattaneo-Crump-Farrell-Feng_2019_Binscatter.pdf).
+The alternative covariate adjustment procedure (enabled with the option altcontrols) was formalized by [Cattaneo et al. (2022)](https://nppackages.github.io/references/Cattaneo-Crump-Farrell-Feng_2022_Binscatter.pdf).
 
 
 License
