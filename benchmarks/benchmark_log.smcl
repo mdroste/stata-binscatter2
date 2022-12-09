@@ -1,0 +1,799 @@
+{smcl}
+{com}{sf}{ul off}{txt}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}C:\Users\Mike\Documents\GitHub\stata-binscatter2\benchmarks/benchmark_log.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res} 6 Dec 2022, 18:44:44
+{txt}r; t=0.01 18:44:44
+
+{com}. 
+. 
+. 
+. *===============================================================================
+
+. 
+. * Configuration
+
+. 
+. *===============================================================================
+
+. 
+. 
+. 
+. *-----------------------------------------------
+
+. 
+. * Options for all benchmarks
+
+. 
+. *-----------------------------------------------
+
+. 
+. 
+. 
+. * Number of repetitions.
+
+. 
+. local num_reps = 25
+{txt}r; t=0.00 18:44:45
+
+{com}. 
+. 
+. 
+. * List containing set of bins to consider
+
+. 
+. local bin_list 10 20 50 100
+{txt}r; t=0.00 18:44:45
+
+{com}. 
+. 
+. 
+. * List containing set of observations (in millions) to consider
+
+. 
+. local obs_list 1 10 25 50 100
+{txt}r; t=0.00 18:44:45
+
+{com}. 
+. 
+. 
+. *-----------------------------------------------
+
+. 
+. * Options for certain benchmarks
+
+. 
+. *-----------------------------------------------
+
+. 
+. 
+. 
+. * Benchmark 3: Number of controls
+
+. 
+. local C = 10
+{txt}r; t=0.00 18:44:45
+
+{com}. 
+. 
+. 
+. * Benchmark 4: Number of FEs
+
+. 
+. local G = 50
+{txt}r; t=0.00 18:44:45
+
+{com}. 
+. 
+. 
+. * Benchmark 5: Number of FEs, as fraction of # obs (grows with N)
+
+. 
+. local G_rel = 0.1
+{txt}r; t=0.00 18:44:45
+
+{com}. 
+. 
+. 
+. * Benchmark 6: Number of FEs, two-way FEs spec
+
+. 
+. local G1 = 50
+{txt}r; t=0.01 18:44:45
+
+{com}. 
+. local G2 = 100
+{txt}r; t=0.00 18:44:45
+
+{com}. do "C:\Users\Mike\AppData\Local\Temp\STD6174_000000.tmp"
+{txt}
+{com}. 
+. *-------------------------------------------------------------
+. * Run simulations
+. *-------------------------------------------------------------
+. 
+. * Double loop over bins and obs
+. foreach o in `obs_list' {c -(}
+{txt}  2{com}.         foreach num_bins in `bin_list' {c -(}
+{txt}  3{com}.                 
+.                 di " "
+{txt}  4{com}.                 di " " 
+{txt}  5{com}.                 di "Simulations with `o' million observations and `num_bins' bins"
+{txt}  6{com}.                 
+.                 * Create matrix to store results
+.                 mat R_`num_bins'_`o' = J(`num_reps',3,.)
+{txt}  7{com}.                 
+.                 * Loop over repetitions
+.                 forval i=1/`num_reps' {c -(}
+{txt}  8{com}.                         
+.                         noi di "   Repetition `i' of `num_reps'"
+{txt}  9{com}.                         
+.                         timer clear
+{txt} 10{com}. 
+.                         * Generate data
+.                         drop _all
+{txt} 11{com}.                         set obs `=`o'*1000000'
+{txt} 12{com}.                         gen x = runiform()
+{txt} 13{com}.                         gen y = 1 + 2*x + 3*x^2 + 4*x^3 + rnormal()*5*x
+{txt} 14{com}.                         gen g1 = ceil(runiform()*`G1')
+{txt} 15{com}.                         gen g2 = ceil(runiform()*`G2')
+{txt} 16{com}.                         preserve
+{txt} 17{com}.                         
+.                         * Binscatter
+.                         restore, preserve
+{txt} 18{com}.                         timer on 1
+{txt} 19{com}.                         *qui binscatter y x, nquantiles(`num_bins') absorb(g)
+.                         timer off 1
+{txt} 20{com}.                         
+.                         * Binscatter2
+.                         restore, preserve
+{txt} 21{com}.                         timer on 2
+{txt} 22{com}.                         qui binscatter2 y x, nbins(`num_bins') absorb(g1 g2)
+{txt} 23{com}.                         timer off 2
+{txt} 24{com}.                         
+.                         * Binsreg
+.                         restore
+{txt} 25{com}.                         timer on 3
+{txt} 26{com}.                         qui binsreg y x, nbins(`num_bins') polyreg(1) absorb(g1 g2)
+{txt} 27{com}.                         timer off 3
+{txt} 28{com}.                         
+.                         * Save current rep to results row
+.                         timer list
+{txt} 29{com}.                         mat R_`num_bins'_`o'[`i',1] = r(t1)
+{txt} 30{com}.                         mat R_`num_bins'_`o'[`i',2] = r(t2)
+{txt} 31{com}.                         mat R_`num_bins'_`o'[`i',3] = r(t3)
+{txt} 32{com}.                         di " " 
+{txt} 33{com}.                         
+.                 {c )-}
+{txt} 34{com}.         {c )-}
+{txt} 35{com}. {c )-}
+{txt}r; t=0.00 18:44:56
+
+{com}. 
+. *-------------------------------------------------------------
+. * Display results
+. *-------------------------------------------------------------
+. 
+. * Take results matrices, put into Stata dataset, generate relative runtime
+. local num_reps 5
+{txt}r; t=0.00 18:44:56
+
+{com}. local bin_list 10 20 50 100
+{txt}r; t=0.00 18:44:56
+
+{com}. local obs_list 1 10 25 50 100
+{txt}r; t=0.00 18:44:56
+
+{com}. drop *
+{err}variable * not found
+{txt}{search r(111), local:r(111);} t=0.00 18:44:56
+
+end of do-file
+
+{search r(111), local:r(111);} t=0.01 18:44:56
+
+{com}. * Number of repetitions.
+
+. 
+. local num_reps = 25
+{txt}r; t=0.01 18:45:24
+
+{com}. 
+. 
+. 
+. * List containing set of bins to consider
+
+. 
+. local bin_list 10 20 50 100
+{txt}r; t=0.01 18:45:24
+
+{com}. 
+. 
+. 
+. * List containing set of observations (in millions) to consider
+
+. 
+. local obs_list 1 10 25 50 100
+{txt}r; t=0.00 18:45:24
+
+{com}. 
+. 
+. 
+. *-----------------------------------------------
+
+. 
+. * Options for certain benchmarks
+
+. 
+. *-----------------------------------------------
+
+. 
+. 
+. 
+. * Benchmark 3: Number of controls
+
+. 
+. local C = 10
+{txt}r; t=0.00 18:45:25
+
+{com}. 
+. 
+. 
+. * Benchmark 4: Number of FEs
+
+. 
+. local G = 50
+{txt}r; t=0.00 18:45:25
+
+{com}. 
+. 
+. 
+. * Benchmark 5: Number of FEs, as fraction of # obs (grows with N)
+
+. 
+. local G_rel = 0.1
+{txt}r; t=0.00 18:45:25
+
+{com}. 
+. 
+. 
+. * Benchmark 6: Number of FEs, two-way FEs spec
+
+. 
+. local G1 = 50
+{txt}r; t=0.00 18:45:25
+
+{com}. 
+. local G2 = 100
+{txt}r; t=0.00 18:45:25
+
+{com}. local bin_list 10 20
+{txt}r; t=0.38 18:45:45
+
+{com}. local obs_list 1 10 25
+{txt}r; t=0.00 18:45:48
+
+{com}. local num_reps = 1
+{txt}r; t=0.00 18:45:53
+
+{com}. do "C:\Users\Mike\AppData\Local\Temp\STD6174_000000.tmp"
+{txt}
+{com}. 
+. * Double loop over bins and obs
+. foreach o in `obs_list' {c -(}
+{txt}  2{com}.         foreach num_bins in `bin_list' {c -(}
+{txt}  3{com}.                 
+.                 di " "
+{txt}  4{com}.                 di " " 
+{txt}  5{com}.                 di "Simulations with `o' million observations and `num_bins' bins"
+{txt}  6{com}.                 
+.                 * Create matrix to store results
+.                 mat R_`num_bins'_`o' = J(`num_reps',3,.)
+{txt}  7{com}.                 
+.                 * Loop over repetitions
+.                 forval i=1/`num_reps' {c -(}
+{txt}  8{com}.                         
+.                         noi di "   Repetition `i' of `num_reps'"
+{txt}  9{com}.                         
+.                         timer clear
+{txt} 10{com}. 
+.                         * Generate data
+.                         drop _all
+{txt} 11{com}.                         set obs `=`o'*1000000'
+{txt} 12{com}.                         gen x = runiform()
+{txt} 13{com}.                         gen y = 1 + 2*x + 3*x^2 + 4*x^3 + rnormal()*5*x
+{txt} 14{com}.                         gen g1 = ceil(runiform()*`G1')
+{txt} 15{com}.                         gen g2 = ceil(runiform()*`G2')
+{txt} 16{com}.                         preserve
+{txt} 17{com}.                         
+.                         * Binscatter
+.                         restore, preserve
+{txt} 18{com}.                         timer on 1
+{txt} 19{com}.                         *qui binscatter y x, nquantiles(`num_bins') absorb(g)
+.                         timer off 1
+{txt} 20{com}.                         
+.                         * Binscatter2
+.                         restore, preserve
+{txt} 21{com}.                         timer on 2
+{txt} 22{com}.                         qui binscatter2 y x, nbins(`num_bins') absorb(g1 g2)
+{txt} 23{com}.                         timer off 2
+{txt} 24{com}.                         
+.                         * Binsreg
+.                         restore
+{txt} 25{com}.                         timer on 3
+{txt} 26{com}.                         qui binsreg y x, nbins(`num_bins') polyreg(1) absorb(g1 g2)
+{txt} 27{com}.                         timer off 3
+{txt} 28{com}.                         
+.                         * Save current rep to results row
+.                         timer list
+{txt} 29{com}.                         mat R_`num_bins'_`o'[`i',1] = r(t1)
+{txt} 30{com}.                         mat R_`num_bins'_`o'[`i',2] = r(t2)
+{txt} 31{com}.                         mat R_`num_bins'_`o'[`i',3] = r(t3)
+{txt} 32{com}.                         di " " 
+{txt} 33{com}.                         
+.                 {c )-}
+{txt} 34{com}.         {c )-}
+{txt} 35{com}. {c )-}
+{txt}r; t=0.01 18:46:02
+
+{com}. 
+{txt}end of do-file
+
+r; t=0.01 18:46:02
+{com}. di `obs_list'
+{res}11025
+{txt}r; t=0.01 18:46:18
+
+{com}. di "`obs_list'"
+{res}1 10 25
+{txt}r; t=0.00 18:46:22
+
+{com}. foreach o in `obs_list' {c -(}
+{txt}  2{com}. 
+. foreach num_bins in `bin_list' {c -(}
+{txt}  3{com}. 
+. 
+. 
+. di " "
+{txt}  4{com}. 
+. di " " 
+{txt}  5{com}. 
+. di "Simulations with `o' million observations and `num_bins' bins"
+{txt}  6{com}. 
+. 
+. 
+. * Create matrix to store results
+. 
+. mat R_`num_bins'_`o' = J(`num_reps',3,.)
+{txt}  7{com}. 
+. 
+. 
+. * Loop over repetitions
+. 
+. forval i=1/`num_reps' {c -(}
+{txt}  8{com}. 
+. 
+. 
+. noi di "   Repetition `i' of `num_reps'"
+{txt}  9{com}. 
+. 
+. 
+. timer clear
+{txt} 10{com}. 
+. 
+. 
+. * Generate data
+. 
+. drop _all
+{txt} 11{com}. 
+. set obs `=`o'*1000000'
+{txt} 12{com}. 
+. gen x = runiform()
+{txt} 13{com}. 
+. gen y = 1 + 2*x + 3*x^2 + 4*x^3 + rnormal()*5*x
+{txt} 14{com}. 
+. gen g1 = ceil(runiform()*`G1')
+{txt} 15{com}. 
+. gen g2 = ceil(runiform()*`G2')
+{txt} 16{com}. 
+. preserve
+{txt} 17{com}. 
+. 
+. 
+. * Binscatter
+. 
+. restore, preserve
+{txt} 18{com}. 
+. timer on 1
+{txt} 19{com}. 
+. *qui binscatter y x, nquantiles(`num_bins') absorb(g)
+. 
+. timer off 1
+{txt} 20{com}. 
+. 
+. 
+. * Binscatter2
+. 
+. restore, preserve
+{txt} 21{com}. 
+. timer on 2
+{txt} 22{com}. 
+. qui binscatter2 y x, nbins(`num_bins') absorb(g1 g2)
+{txt} 23{com}. 
+. timer off 2
+{txt} 24{com}. 
+. 
+. 
+. * Binsreg
+. 
+. restore
+{txt} 25{com}. 
+. timer on 3
+{txt} 26{com}. 
+. qui binsreg y x, nbins(`num_bins') polyreg(1) absorb(g1 g2)
+{txt} 27{com}. 
+. timer off 3
+{txt} 28{com}. 
+. 
+. 
+. * Save current rep to results row
+. 
+. timer list
+{txt} 29{com}. 
+. mat R_`num_bins'_`o'[`i',1] = r(t1)
+{txt} 30{com}. 
+. mat R_`num_bins'_`o'[`i',2] = r(t2)
+{txt} 31{com}. 
+. mat R_`num_bins'_`o'[`i',3] = r(t3)
+{txt} 32{com}. 
+. di " " 
+{txt} 33{com}. 
+. 
+. 
+. {c )-}
+{txt} 34{com}. 
+. {c )-}
+{txt} 35{com}. 
+. {c )-}
+ 
+ 
+Simulations with 1 million observations and 10 bins
+   Repetition 1 of 1
+{txt}{p}
+Number of observations ({bf:_N}) was 0,
+now 1,000,000.
+{p_end}
+{res}   1:      0.00 /        1 =       0.0000
+   2:      5.46 /        1 =       5.4580
+   3:      8.31 /        1 =       8.3090
+ 
+ 
+ 
+Simulations with 1 million observations and 20 bins
+   Repetition 1 of 1
+{txt}{p}
+Number of observations ({bf:_N}) was 0,
+now 1,000,000.
+{p_end}
+{res}   1:      0.00 /        1 =       0.0000
+   2:      5.06 /        1 =       5.0620
+   3:     12.03 /        1 =      12.0310
+ 
+ 
+ 
+Simulations with 10 million observations and 10 bins
+   Repetition 1 of 1
+{txt}{p}
+Number of observations ({bf:_N}) was 0,
+now 10,000,000.
+{p_end}
+{res}   1:      0.00 /        1 =       0.0000
+   2:     43.67 /        1 =      43.6750
+   3:     83.02 /        1 =      83.0170
+ 
+ 
+ 
+Simulations with 10 million observations and 20 bins
+   Repetition 1 of 1
+{txt}{p}
+Number of observations ({bf:_N}) was 0,
+now 10,000,000.
+{p_end}
+{res}   1:      0.00 /        1 =       0.0000
+   2:     43.87 /        1 =      43.8690
+   3:    118.48 /        1 =     118.4760
+ 
+ 
+ 
+Simulations with 25 million observations and 10 bins
+   Repetition 1 of 1
+{txt}{p}
+Number of observations ({bf:_N}) was 0,
+now 25,000,000.
+{p_end}
+{res}   1:      0.00 /        1 =       0.0000
+   2:    107.65 /        1 =     107.6540
+   3:    207.18 /        1 =     207.1770
+ 
+ 
+ 
+Simulations with 25 million observations and 20 bins
+   Repetition 1 of 1
+{txt}{p}
+Number of observations ({bf:_N}) was 0,
+now 25,000,000.
+{p_end}
+{res}   1:      0.00 /        1 =       0.0000
+   2:    108.72 /        1 =     108.7150
+   3:    287.77 /        1 =     287.7750
+ 
+{txt}r; t=1049.64 19:04:02
+
+{com}. local bin_list 10
+{txt}r; t=0.00 20:30:40
+
+{com}. local num_reps = 1
+{txt}r; t=0.01 20:30:44
+
+{com}. local obs_list 100
+{txt}r; t=0.00 20:30:49
+
+{com}. foreach o in `obs_list' {c -(}
+{txt}  2{com}. 
+. foreach num_bins in `bin_list' {c -(}
+{txt}  3{com}. 
+. 
+. 
+. di " "
+{txt}  4{com}. 
+. di " "
+{txt}  5{com}. 
+. di "Simulations with `o' million observations and `num_bins' bins"
+{txt}  6{com}. 
+. 
+. 
+. * Create matrix to store results
+. 
+. mat R_`num_bins'_`o' = J(`num_reps',3,.)
+{txt}  7{com}. 
+. 
+. 
+. * Loop over repetitions
+. 
+. forval i=1/`num_reps' {c -(}
+{txt}  8{com}. 
+. 
+. 
+. noi di "   Repetition `i' of `num_reps'"
+{txt}  9{com}. 
+. 
+. 
+. timer clear
+{txt} 10{com}. 
+. 
+. 
+. * Generate data
+. 
+. drop _all
+{txt} 11{com}. 
+. set obs `=`o'*1000000'
+{txt} 12{com}. 
+. gen x = runiform()
+{txt} 13{com}. 
+. gen y = 1 + 2*x + 3*x^2 + 4*x^3 + rnormal()*5*x
+{txt} 14{com}. 
+. preserve
+{txt} 15{com}. 
+. 
+. 
+. * Binscatter
+. 
+. restore, preserve
+{txt} 16{com}. 
+. timer on 1
+{txt} 17{com}. 
+. qui binscatter y x, nquantiles(`num_bins')
+{txt} 18{com}. 
+. timer off 1
+{txt} 19{com}. 
+. 
+. 
+. * Binscatter2
+. 
+. restore, preserve
+{txt} 20{com}. 
+. timer on 2
+{txt} 21{com}. 
+. qui binscatter2 y x, nbins(`num_bins')
+{txt} 22{com}. 
+. timer off 2
+{txt} 23{com}. 
+. 
+. 
+. * Binsreg
+. 
+. restore
+{txt} 24{com}. 
+. /*
+{txt} 25{com}. 
+. timer on 3
+{txt} 26{com}. 
+. qui binsreg y x, nbins(`num_bins') polyreg(1)
+{txt} 27{com}. 
+. timer off 3
+{txt} 28{com}. 
+. */
+. 
+. 
+. 
+. * Save current rep to results row
+. 
+. timer list
+{txt} 29{com}. 
+. mat R_`num_bins'_`o'[`i',1] = r(t1)
+{txt} 30{com}. 
+. mat R_`num_bins'_`o'[`i',2] = r(t2)
+{txt} 31{com}. 
+. mat R_`num_bins'_`o'[`i',3] = r(t3)
+{txt} 32{com}. 
+. di " " 
+{txt} 33{com}. 
+. 
+. 
+. {c )-}
+{txt} 34{com}. 
+. {c )-}
+{txt} 35{com}. 
+. {c )-}
+ 
+ 
+Simulations with 100 million observations and 10 bins
+   Repetition 1 of 1
+{txt}{p}
+Number of observations ({bf:_N}) was 0,
+now 100,000,000.
+{p_end}
+{bf}{err}/{sf} is not a valid command name
+{txt}{search r(199), local:r(199);} t=181.28 20:34:09
+
+{com}. foreach o in `obs_list' {c -(}
+{txt}  2{com}. 
+. foreach num_bins in `bin_list' {c -(}
+{txt}  3{com}. 
+. 
+. 
+. di " "
+{txt}  4{com}. 
+. di " "
+{txt}  5{com}. 
+. di "Simulations with `o' million observations and `num_bins' bins"
+{txt}  6{com}. 
+. 
+. 
+. * Create matrix to store results
+. 
+. mat R_`num_bins'_`o' = J(`num_reps',3,.)
+{txt}  7{com}. 
+. 
+. 
+. * Loop over repetitions
+. 
+. forval i=1/`num_reps' {c -(}
+{txt}  8{com}. 
+. 
+. 
+. noi di "   Repetition `i' of `num_reps'"
+{txt}  9{com}. 
+. 
+. 
+. timer clear
+{txt} 10{com}. 
+. 
+. 
+. * Generate data
+. 
+. drop _all
+{txt} 11{com}. 
+. set obs `=`o'*1000000'
+{txt} 12{com}. 
+. gen x = runiform()
+{txt} 13{com}. 
+. gen y = 1 + 2*x + 3*x^2 + 4*x^3 + rnormal()*5*x
+{txt} 14{com}. 
+. preserve
+{txt} 15{com}. 
+. 
+. 
+. * Binscatter
+. 
+. restore, preserve
+{txt} 16{com}. 
+. timer on 1
+{txt} 17{com}. 
+. qui binscatter y x, nquantiles(`num_bins')
+{txt} 18{com}. 
+. timer off 1
+{txt} 19{com}. 
+. 
+. 
+. * Binscatter2
+. 
+. restore, preserve
+{txt} 20{com}. 
+. timer on 2
+{txt} 21{com}. 
+. qui binscatter2 y x, nbins(`num_bins')
+{txt} 22{com}. 
+. timer off 2
+{txt} 23{com}. 
+. 
+. 
+. * Binsreg
+. 
+. restore
+{txt} 24{com}. 
+. timer on 3
+{txt} 25{com}. 
+. *qui binsreg y x, nbins(`num_bins') polyreg(1)
+. 
+. timer off 3
+{txt} 26{com}. 
+. 
+. 
+. * Save current rep to results row
+. 
+. timer list
+{txt} 27{com}. 
+. mat R_`num_bins'_`o'[`i',1] = r(t1)
+{txt} 28{com}. 
+. mat R_`num_bins'_`o'[`i',2] = r(t2)
+{txt} 29{com}. 
+. mat R_`num_bins'_`o'[`i',3] = r(t3)
+{txt} 30{com}. 
+. di " " 
+{txt} 31{com}. 
+. 
+. 
+. {c )-}
+{txt} 32{com}. 
+. {c )-}
+{txt} 33{com}. 
+. {c )-}
+ 
+ 
+Simulations with 100 million observations and 10 bins
+   Repetition 1 of 1
+{txt}{p}
+Number of observations ({bf:_N}) was 0,
+now 100,000,000.
+{p_end}
+{res}   1:    125.51 /        1 =     125.5070
+   2:     36.85 /        1 =      36.8510
+   3:      0.00 /        1 =       0.0000
+ 
+{txt}r; t=179.33 20:37:37
+
+{com}. di 36/125
+{res}.288
+{txt}r; t=0.00 20:47:40
+
+{com}. di 125/36
+{res}3.4722222
+{txt}r; t=0.00 20:47:43
+
+{com}. set processors
+{txt}{p 4 4 2}
+The maximum number of processors or cores being used is {res:4}.
+It can be set to any number between {res:1} and {res:4}.
+{p_end}
+r; t=0.01 20:47:52
+
+{com}. set processors 2
+{txt}{p 4 4 2}
+The maximum number of processors or cores being used is changed from {res:4} to {res:2}.
+It can be set to any number between {res:1} and {res:4}
+{p_end}
+r; t=0.00 20:47:57
+
+{com}. 

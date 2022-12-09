@@ -1,4 +1,4 @@
-*! binscatter2, v0.990 (05dec2022), Michael Droste, mdroste@fas.harvard.edu
+*! binscatter2, v0.90 (05dec2022), Michael Droste, mdroste@fas.harvard.edu
 *===============================================================================
 * Program: binscatter2.ado
 * Purpose: New functionality and efficiency improvements for binscatter.
@@ -340,8 +340,17 @@ if `"`absorb'"'!="" {
 		cap which reghdfe
 		if _rc>0 {
 			di as error "Error: You specified more than 1 fixed effect in absorb(), but don't have reghdfe installed."
-			di as error "Please install the reghdfe package from SSC or GitHub to absorb multi-way fixed effects."
+			di as error "Please install the reghdfe package from SSC or GitHub to absorb multi-way fixed effects with binscatter2."
 			exit
+		}
+	}
+	if `num_fes'== 1 {
+		cap which reghdfe
+		if _rc==0 {
+			local regtype reghdfe
+		}
+		else {
+			di "Warning: reghdfe not installed. binscatter2 may be faster when you use absorb() with reghdfe installed."
 		}
 	}
 }
