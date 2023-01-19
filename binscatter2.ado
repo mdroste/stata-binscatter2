@@ -1,9 +1,9 @@
-*! binscatter2, v0.90 (05dec2022), Michael Droste, mdroste@fas.harvard.edu
+*! binscatter2, v0.91 (19jan2023), Michael Droste, mdroste@fas.harvard.edu
 *===============================================================================
 * Program: binscatter2.ado
 * Purpose: New functionality and efficiency improvements for binscatter.
 * Author:  Michael Droste
-* Version: 0.23 (12/04/2022)
+* Version: 0.91 (19jan2023)
 * Credits: This program was made possible due to the collective efforts of a 
 *          handful of Stata superstars, among them:
 *           - Michael Stepner, who wrote the original binscatter (with 
@@ -439,7 +439,7 @@ if "`xq'"=="" {
 	if "`discrete'"=="" {
 		if ("`genxq'"!="") local xq `genxq'
 		else tempvar xq
-		fasterxtile `xq' = `x_r', nq(`nquantiles')	
+		fasterxtile `xq' = `x_r' `wt', nq(`nquantiles')	
 	}
 	* If discrete is specified...
 	if "`discrete'"!="" {
@@ -677,7 +677,7 @@ if "`by'"=="" {
 
 	* Collapse residualized y vars and x var within each x bin
 	qui drop if `xq'==.
-	gcollapse (`collapsetype') `y_vars_r' `x_r' `quantiles_opt', by(`xq') fast
+	gcollapse (`collapsetype') `y_vars_r' `x_r' `quantiles_opt' `wt', by(`xq') fast
 
 	* Make matrix containing mean x and mean y within each bin for each y var
 	local counter_depvar=0
@@ -728,7 +728,7 @@ if "`by'"!="" {
 
 		* Collapse residualized y vars and x var within each x bin
 		qui drop if `xq'==.
-		gcollapse `y_vars_r' `x_r', by(`xq') fast
+		gcollapse `y_vars_r' `x_r' `wt', by(`xq') fast
 
 		* Make matrix containing mean x and mean y within each bin for each y var
 		* XX this is where issue is arising w/ multiple dependent vars
