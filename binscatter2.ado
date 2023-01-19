@@ -54,7 +54,7 @@ syntax varlist(min=2 numeric) [if] [in] [aweight fweight], ///
 	randcut(real 1) ///
 	randn(integer -1) ///
 	/* LEGACY OPTIONS */ nbins(integer 20) create_xq x_q(varname numeric) symbols(string) method(string) unique(string) ///
-]
+	*]
 
 set more off
 	
@@ -332,7 +332,7 @@ if `"`absorb'"'!="" {
 	foreach v of varlist `absorb' {
 		local num_fes = `num_fes' + 1
 	}
-	noi di "Num fes: `num_fes'"
+	*noi di "Num fes: `num_fes'"
 	local absorb "absorb(`absorb')"
 	local regtype "areg"
 	if `num_fes' > 1 {
@@ -401,8 +401,8 @@ if "`altcontrols'"=="" {
 				replace `residvar' = `residvar'+r(mean)
 			}	
 			replace `yvar' = `residvar'
-			noi di "y_vars_r: `y_vars_r'"
-			noi di "residvar: `residvar'"
+			*noi di "y_vars_r: `y_vars_r'"
+			*noi di "residvar: `residvar'"
 			local y_vars_r `y_vars_r' `residvar'
 		}
 
